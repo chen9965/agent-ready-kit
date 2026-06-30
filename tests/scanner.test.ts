@@ -3,8 +3,10 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { buildRepositoryCodeContext } from "../src/core/code-context.js";
 import { loadConfig } from "../src/core/config.js";
 import { generateFiles } from "../src/core/generator.js";
+import { loadLlmOptions } from "../src/core/llm.js";
 import { scanRepository } from "../src/core/scanner.js";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -41,6 +43,21 @@ describe("scanRepository", () => {
   });
 });
 
+describe("buildRepositoryCodeContext", () => {
+  it("samples useful code files while skipping secret-like files", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "agent-ready-code-context-"));
+    await writeFile(path.join(dir, "package.json"), JSON.stringify({ scripts: { test: "vitest" } }), "utf8");
+    await writeFile(path.join(dir, "index.ts"), "export function run() { return 'ok'; }\n", "utf8");
+    await writeFile(path.join(dir, ".env"), "TOKEN=super-secret-value\n", "utf8");
+
+    const context = await buildRepositoryCodeContext(dir, { maxFiles: 4, maxChars: 4000 });
+
+    expect(context.filesSent).toBeGreaterThan(0);
+    expect(context.files.some((file) => file.path === "package.json")).toBe(true);
+    expect(context.files.some((file) => file.path === ".env")).toBe(false);
+  });
+});
+
 describe("loadConfig", () => {
   it("merges user config with defaults", async () => {
     const dir = await mkdtemp(path.join(tmpdir(), "agent-ready-kit-"));
@@ -56,5 +73,21 @@ describe("loadConfig", () => {
     expect(config.agentTargets).toContain("Codex");
     expect(config.riskLevel).toBe("high");
     expect(config.outputDir).toBe("artifacts");
+  });
+});
+
+describe("loadLlmOptions", () => {
+  it("preserves code-context options", () => {
+    const options = loadLlmOptions({
+      apiKey: "test-key",
+      model: "test-model",
+      includeCodeContext: true,
+      codeMaxFiles: 5,
+      codeMaxChars: 6000
+    });
+
+    expect(options.includeCodeContext).toBe(true);
+    expect(options.codeMaxFiles).toBe(5);
+    expect(options.codeMaxChars).toBe(6000);
   });
 });

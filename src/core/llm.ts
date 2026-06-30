@@ -1,10 +1,14 @@
 import type { LlmInsight, ScanResult } from "../types.js";
+import { buildRepositoryCodeContext, type RepositoryCodeContext } from "./code-context.js";
 
 export interface LlmOptions {
   apiKey?: string;
   baseUrl?: string;
   model?: string;
   timeoutMs?: number;
+  includeCodeContext?: boolean;
+  codeMaxFiles?: number;
+  codeMaxChars?: number;
 }
 
 export interface LlmEnhanceResult {
@@ -32,7 +36,10 @@ export function loadLlmOptions(overrides: LlmOptions = {}): LlmOptions {
     apiKey: overrides.apiKey ?? process.env.AGENT_READY_LLM_API_KEY,
     baseUrl: overrides.baseUrl ?? process.env.AGENT_READY_LLM_BASE_URL ?? defaultBaseUrl,
     model: overrides.model ?? process.env.AGENT_READY_LLM_MODEL,
-    timeoutMs: overrides.timeoutMs ?? defaultTimeoutMs
+    timeoutMs: overrides.timeoutMs ?? defaultTimeoutMs,
+    includeCodeContext: overrides.includeCodeContext,
+    codeMaxFiles: overrides.codeMaxFiles,
+    codeMaxChars: overrides.codeMaxChars
   };
 }
 
@@ -54,6 +61,12 @@ export async function enhanceScanWithLlm(scan: ScanResult, options: LlmOptions =
   }
 
   const baseUrl = normalizeBaseUrl(config.baseUrl ?? defaultBaseUrl);
+  const codeContext = config.includeCodeContext
+    ? await buildRepositoryCodeContext(scan.root, {
+        maxFiles: config.codeMaxFiles,
+        maxChars: config.codeMaxChars
+      })
+    : undefined;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.timeoutMs ?? defaultTimeoutMs);
 
@@ -73,11 +86,11 @@ export async function enhanceScanWithLlm(scan: ScanResult, options: LlmOptions =
           {
             role: "system",
             content:
-              "You turn repository readiness scan results into concise bilingual recommendations. Do not claim you reviewed source code beyond the supplied scan JSON. Return JSON only."
+              "You turn repository readiness scan results into concise bilingual recommendations. If sampled code context is supplied, use it only as partial evidence and say so implicitly through cautious recommendations. Do not claim you reviewed the entire source tree. Return JSON only."
           },
           {
             role: "user",
-            content: JSON.stringify(buildPromptPayload(scan))
+            content: JSON.stringify(buildPromptPayload(scan, codeContext))
           }
         ]
       }),
@@ -98,7 +111,7 @@ export async function enhanceScanWithLlm(scan: ScanResult, options: LlmOptions =
       return { scan, status: "error", message: "LLM response did not include message content." };
     }
 
-    const insight = parseInsight(content, baseUrl, config.model);
+    const insight = parseInsight(content, baseUrl, config.model, codeContext);
     return { scan: { ...scan, llm: insight }, status: "ok" };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -108,10 +121,10 @@ export async function enhanceScanWithLlm(scan: ScanResult, options: LlmOptions =
   }
 }
 
-function buildPromptPayload(scan: ScanResult): Record<string, unknown> {
+function buildPromptPayload(scan: ScanResult, codeContext?: RepositoryCodeContext): Record<string, unknown> {
   return {
     task:
-      "Return JSON with keys summary, summaryZh, priorityFixes, priorityFixesZh, suggestedIssueTitles. Keep each array to 3 items.",
+      "Return JSON with keys summary, summaryZh, priorityFixes, priorityFixesZh, suggestedIssueTitles. Keep each array to 3 items. If codeContext is present, infer missing onboarding details from sampled files and suggest concrete AGENTS.md/repo-map content.",
     score: scan.score,
     stack: scan.stack,
     packageManager: scan.packageManager,
@@ -130,14 +143,34 @@ function buildPromptPayload(scan: ScanResult): Record<string, unknown> {
       titleZh: finding.titleZh,
       fix: finding.fix,
       fixZh: finding.fixZh
-    }))
+    })),
+    codeContext: codeContext
+      ? {
+          mode: codeContext.mode,
+          filesSent: codeContext.filesSent,
+          charsSent: codeContext.charsSent,
+          fileTree: codeContext.fileTree,
+          entrypointCandidates: codeContext.entrypointCandidates,
+          testCandidates: codeContext.testCandidates,
+          files: codeContext.files
+        }
+      : undefined
   };
 }
 
-function parseInsight(content: string, baseUrl: string, model: string): LlmInsight {
+function parseInsight(content: string, baseUrl: string, model: string, codeContext?: RepositoryCodeContext): LlmInsight {
   const parsed = JSON.parse(stripJsonFence(content)) as Partial<LlmInsight>;
   return {
     provider: { baseUrl, model },
+    sourceMode: codeContext ? "sampled-code" : "scan-summary",
+    codeContext: codeContext
+      ? {
+          filesSent: codeContext.filesSent,
+          charsSent: codeContext.charsSent,
+          maxFiles: codeContext.maxFiles,
+          maxChars: codeContext.maxChars
+        }
+      : undefined,
     summary: cleanText(parsed.summary, "Model-enhanced recommendations are available."),
     summaryZh: cleanText(parsed.summaryZh, "已生成大模型增强建议。"),
     priorityFixes: cleanList(parsed.priorityFixes),

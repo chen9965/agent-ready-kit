@@ -34,6 +34,11 @@ export function renderScanSummary(scan: ScanResult): string {
 
   if (scan.llm) {
     lines.push("", pc.bold("LLM recommendations / 大模型增强建议"));
+    if (scan.llm.codeContext) {
+      lines.push(`  Source / 来源: sampled code (${scan.llm.codeContext.filesSent} files, ${scan.llm.codeContext.charsSent} chars)`);
+    } else {
+      lines.push("  Source / 来源: scan summary only");
+    }
     lines.push(`  ${scan.llm.summary}`);
     lines.push(`  ${scan.llm.summaryZh}`);
     for (const fix of scan.llm.priorityFixesZh.length ? scan.llm.priorityFixesZh : scan.llm.priorityFixes) {

@@ -58,6 +58,10 @@ function renderLlm(scan: ScanResult): string {
     : llm.priorityFixes.map((fix) => `- ${fix}`).join("\n");
   const issues = llm.suggestedIssueTitles.map((title) => `- ${title}`).join("\n");
 
+  const context = llm.codeContext
+    ? `\nSource mode / 来源模式: sampled code context (\`${llm.codeContext.filesSent}\` files, \`${llm.codeContext.charsSent}\` chars)`
+    : "\nSource mode / 来源模式: scan summary only";
+
   return `
 
 ## LLM Recommendations / 大模型增强建议
@@ -65,6 +69,7 @@ function renderLlm(scan: ScanResult): string {
 ${llm.summary}
 
 ${llm.summaryZh}
+${context}
 
 ${fixes ? `### Priority Fixes / 优先修复\n\n${fixes}` : ""}
 

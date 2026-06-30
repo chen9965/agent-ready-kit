@@ -57,6 +57,13 @@ export interface LlmInsight {
     baseUrl: string;
     model: string;
   };
+  sourceMode: "scan-summary" | "sampled-code";
+  codeContext?: {
+    filesSent: number;
+    charsSent: number;
+    maxFiles: number;
+    maxChars: number;
+  };
   summary: string;
   summaryZh: string;
   priorityFixes: string[];

@@ -8,7 +8,7 @@
 - 可用方式：`npx @chent6767/agent-ready-kit scan .`
 - 生成展示产物：`npx @chent6767/agent-ready-kit scan . --out .agent-ready`
 - GitHub 源码方式：`npx github:chen9965/agent-ready-kit scan .`
-- 核心卖点：它不是 AI 套壳，而是给仓库做一次“AI 编码代理上岗体检”。默认不需要 API Key，不上传源码；可选接入 OpenAI 兼容大模型，把静态扫描结果润色成更像 reviewer 的建议。
+- 核心卖点：它不是 AI 套壳，而是给仓库做一次“AI 编码代理上岗体检”。默认不需要 API Key，不上传源码；可选接入 OpenAI 兼容大模型。`--llm` 只发送扫描摘要，`--llm-code` 会发送有限采样代码上下文，适合文档很少、主要靠代码表达结构的仓库。
 
 视频配乐署名：
 
@@ -20,7 +20,7 @@
 
 我做了一个小工具，帮仓库把 AI 编码代理最需要的规则讲清楚：怎么安装、怎么测试、哪些目录别碰、改完怎么验证。
 
-它会给仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 CI 门禁。现在 `scan --out` 还会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`，适合大仓库展示“使用前后到底差在哪”。
+它会给仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 CI 门禁。现在 `scan --out` 还会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`，适合大仓库展示“使用前后到底差在哪”。如果仓库几乎只有代码，可以用 `--llm-code` 让模型读取采样代码片段，推断入口、测试和上手说明。
 
 更短版本：
 
@@ -55,15 +55,15 @@ Topics 建议：
 - 这不是又一个模型调用工具。
 - 它扫描的是仓库给 Agent 的协作信号。
 - 它输出的是 Agent 能直接使用的说明、任务和门禁。
-- 默认本地运行，不上传源码。
+- 默认本地运行，不上传源码；需要时可显式开启 `--llm-code` 采样代码分析。
 
 可复制版本：
 
-`agent-ready-kit` helps repositories work better with AI coding agents. It scans setup commands, tests, CI, repo maps, safety boundaries, and `AGENTS.md`, then returns an Agent Ready Score and can generate the missing agent-facing files.
+`agent-ready-kit` helps repositories work better with AI coding agents. It scans setup commands, tests, CI, repo maps, safety boundaries, and `AGENTS.md`, then returns an Agent Ready Score and can generate the missing agent-facing files. For code-only repos, `--llm-code` adds sampled-code recommendations through any OpenAI-compatible model.
 
 中文版本：
 
-`agent-ready-kit` 帮仓库更好地配合 AI 编码代理。它会扫描安装命令、测试、CI、仓库地图、安全边界和 `AGENTS.md`，然后给出 Agent Ready Score，并生成缺失的 Agent 可读文件。
+`agent-ready-kit` 帮仓库更好地配合 AI 编码代理。它会扫描安装命令、测试、CI、仓库地图、安全边界和 `AGENTS.md`，然后给出 Agent Ready Score，并生成缺失的 Agent 可读文件。对于纯代码仓库，`--llm-code` 可以通过任意 OpenAI 兼容模型生成基于采样代码的建议。
 
 ## V2EX
 

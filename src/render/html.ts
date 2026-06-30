@@ -105,10 +105,14 @@ function renderLlm(scan: ScanResult): string {
     .map((fix) => `<li>${escapeHtml(fix)}</li>`)
     .join("");
   const issues = llm.suggestedIssueTitles.map((title) => `<li>${escapeHtml(title)}</li>`).join("");
+  const context = llm.codeContext
+    ? `<p><b>Source / 来源:</b> sampled code context (${llm.codeContext.filesSent} files, ${llm.codeContext.charsSent} chars)</p>`
+    : `<p><b>Source / 来源:</b> scan summary only</p>`;
 
   return `<section class="finding info">
     <div class="meta">LLM · ${escapeHtml(llm.provider.model)}</div>
     <h2>LLM Recommendations <span>大模型增强建议</span></h2>
+    ${context}
     <p>${escapeHtml(llm.summary)}</p>
     <p>${escapeHtml(llm.summaryZh)}</p>
     ${fixes ? `<strong>Priority Fixes / 优先修复</strong><ul>${fixes}</ul>` : ""}

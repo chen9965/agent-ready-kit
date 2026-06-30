@@ -15,18 +15,24 @@ export function scanCommand(): Command {
     .option("--fail-under <score>", "exit with code 1 below this score / 低于该分数时返回失败")
     .option("--out <dir>", "write scan artifacts to a directory / 写入扫描产物目录")
     .option("--llm", "add optional model-enhanced recommendations / 添加可选大模型增强建议")
+    .option("--llm-code", "send sampled code context to the LLM / 向大模型发送采样代码上下文")
     .option("--llm-base-url <url>", "OpenAI-compatible API base URL / OpenAI 兼容接口地址")
     .option("--llm-model <model>", "provider model name / 服务商模型名称")
-    .action(async (targetPath: string, options: { json?: boolean; markdown?: boolean; failUnder?: string; out?: string; llm?: boolean; llmBaseUrl?: string; llmModel?: string }) => {
+    .option("--llm-max-files <count>", "maximum sampled files for --llm-code / --llm-code 最多采样文件数")
+    .option("--llm-max-chars <count>", "maximum sampled characters for --llm-code / --llm-code 最多采样字符数")
+    .action(async (targetPath: string, options: { json?: boolean; markdown?: boolean; failUnder?: string; out?: string; llm?: boolean; llmCode?: boolean; llmBaseUrl?: string; llmModel?: string; llmMaxFiles?: string; llmMaxChars?: string }) => {
       if (options.json && options.markdown) {
         throw new Error("Use either --json or --markdown, not both. / --json 和 --markdown 不能同时使用。");
       }
 
       let scan = await scanRepository(targetPath);
-      if (options.llm) {
+      if (options.llm || options.llmCode) {
         const result = await enhanceScanWithLlm(scan, {
           baseUrl: options.llmBaseUrl,
-          model: options.llmModel
+          model: options.llmModel,
+          includeCodeContext: options.llmCode,
+          codeMaxFiles: parseOptionalPositiveInt(options.llmMaxFiles, "--llm-max-files"),
+          codeMaxChars: parseOptionalPositiveInt(options.llmMaxChars, "--llm-max-chars")
         });
         scan = result.scan;
         if (result.status !== "ok" && result.message) {
@@ -63,4 +69,13 @@ function parseOptionalScore(value?: string): number | undefined {
     throw new Error(`--fail-under must be an integer from 0 to 100, received "${value}"`);
   }
   return score;
+}
+
+function parseOptionalPositiveInt(value: string | undefined, flag: string): number | undefined {
+  if (value === undefined) return undefined;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`${flag} must be a positive integer, received "${value}"`);
+  }
+  return parsed;
 }

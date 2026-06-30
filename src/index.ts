@@ -10,6 +10,7 @@ export type {
   ScanResult
 } from "./types.js";
 export { defaultConfig, loadConfig } from "./core/config.js";
+export { buildRepositoryCodeContext } from "./core/code-context.js";
 export { generateFiles, writeGeneratedFiles } from "./core/generator.js";
 export { enhanceScanWithLlm, loadLlmOptions } from "./core/llm.js";
 export { scanRepository } from "./core/scanner.js";
