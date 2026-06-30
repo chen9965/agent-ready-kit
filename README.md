@@ -199,6 +199,12 @@ If the managed endpoint is unavailable, users can bring their own key:
 如果托管端点不可用，用户可以再使用自己的 key：
 
 ```powershell
+$env:AGENT_READY_LLM_PROVIDER="agnes"
+$env:AGENT_READY_LLM_API_KEY="your_agnes_key"
+npx @chent6767/agent-ready-kit . --markdown
+```
+
+```powershell
 $env:AGENT_READY_LLM_API_KEY="your_openrouter_key"
 npx @chent6767/agent-ready-kit . --markdown
 ```
@@ -210,6 +216,14 @@ Defaults:
 - `AGENT_READY_LLM_MANAGED_URL=https://agent-ready-kit-llm.chen9965.workers.dev/v1/recommend`
 - `AGENT_READY_LLM_BASE_URL=https://openrouter.ai/api/v1`
 - `AGENT_READY_LLM_MODEL=openrouter/free`
+
+Agnes preset:
+
+Agnes 预设：
+
+- `AGENT_READY_LLM_PROVIDER=agnes`
+- `AGENT_READY_LLM_BASE_URL=https://apihub.agnes-ai.com/v1`
+- `AGENT_READY_LLM_MODEL=agnes-2.0-flash`
 
 Mainland China-friendly preset:
 

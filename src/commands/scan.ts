@@ -48,7 +48,7 @@ export function addScanOptions(command: Command): Command {
     .option("--llm-managed-url <url>", "maintainer-hosted LLM proxy URL / 维护者托管的大模型代理地址")
     .option("--llm-summary", "send only scan summary, not sampled code / 只发送扫描摘要，不发送采样代码")
     .option("--llm-code", "send sampled code context to the LLM (default) / 向大模型发送采样代码上下文（默认）")
-    .option("--llm-provider <name>", "provider preset: openrouter, siliconflow, gemini, groq / 服务商预设")
+    .option("--llm-provider <name>", "provider preset: openrouter, agnes, siliconflow, gemini, groq / 服务商预设")
     .option("--llm-base-url <url>", "OpenAI-compatible API base URL / OpenAI 兼容接口地址")
     .option("--llm-model <model>", "provider model name / 服务商模型名称")
     .option("--llm-max-files <count>", "maximum sampled files for --llm-code / --llm-code 最多采样文件数")

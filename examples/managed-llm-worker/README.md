@@ -9,7 +9,7 @@ This Cloudflare Worker lets `agent-ready-kit` offer zero-config LLM recommendati
 ```bash
 cd examples/managed-llm-worker
 cp wrangler.toml.example wrangler.toml
-npx wrangler secret put OPENROUTER_API_KEY
+npx wrangler secret put AGNES_API_KEY
 npx wrangler deploy
 ```
 
@@ -19,7 +19,15 @@ Optional secrets and variables:
 npx wrangler secret put UPSTREAM_API_KEY
 ```
 
-In `wrangler.toml`, you can set:
+By default the worker uses Agnes:
+
+```toml
+[vars]
+UPSTREAM_BASE_URL = "https://apihub.agnes-ai.com/v1"
+UPSTREAM_MODEL = "agnes-2.0-flash"
+```
+
+For OpenRouter:
 
 ```toml
 [vars]

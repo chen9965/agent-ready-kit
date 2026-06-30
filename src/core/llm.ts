@@ -327,6 +327,9 @@ function resolveProviderDefaults(provider?: string, baseUrl?: string): Required<
   if (normalizedProvider === "siliconflow" || normalizedBaseUrl?.includes("siliconflow")) {
     return { baseUrl: "https://api.siliconflow.cn/v1", model: "Qwen/Qwen3-8B" };
   }
+  if (normalizedProvider === "agnes" || normalizedBaseUrl?.includes("agnes-ai.com")) {
+    return { baseUrl: "https://apihub.agnes-ai.com/v1", model: "agnes-2.0-flash" };
+  }
   if (normalizedProvider === "gemini" || normalizedBaseUrl?.includes("generativelanguage.googleapis.com")) {
     return { baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-3.5-flash" };
   }

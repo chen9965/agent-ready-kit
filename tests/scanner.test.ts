@@ -93,6 +93,13 @@ describe("loadLlmOptions", () => {
     expect(options.model).toBe("Qwen/Qwen3-8B");
   });
 
+  it("supports the Agnes provider preset", () => {
+    const options = withCleanLlmEnv(() => loadLlmOptions({ apiKey: "test-key", provider: "agnes" }));
+
+    expect(options.baseUrl).toBe("https://apihub.agnes-ai.com/v1");
+    expect(options.model).toBe("agnes-2.0-flash");
+  });
+
   it("allows the managed endpoint to be overridden or disabled", () => {
     const overridden = withCleanLlmEnv(() => loadLlmOptions({ managedUrl: "https://example.com/v1/recommend/" }));
     expect(overridden.managedUrl).toBe("https://example.com/v1/recommend");

@@ -15,7 +15,7 @@ export default {
       return cors(json({ error: { message: "Request is too large" } }, 413));
     }
 
-    const upstreamKey = env.UPSTREAM_API_KEY || env.OPENROUTER_API_KEY;
+    const upstreamKey = env.UPSTREAM_API_KEY || env.AGNES_API_KEY || env.OPENROUTER_API_KEY;
     if (!upstreamKey) {
       return cors(json({ error: { message: "Managed LLM key is not configured" } }, 503));
     }
@@ -31,8 +31,8 @@ export default {
       return cors(json({ error: { message: "Missing promptPayload" } }, 400));
     }
 
-    const baseUrl = trimTrailingSlash(env.UPSTREAM_BASE_URL || "https://openrouter.ai/api/v1");
-    const model = env.UPSTREAM_MODEL || "openrouter/free";
+    const baseUrl = trimTrailingSlash(env.UPSTREAM_BASE_URL || "https://apihub.agnes-ai.com/v1");
+    const model = env.UPSTREAM_MODEL || "agnes-2.0-flash";
     const upstreamPayload = {
       model,
       temperature: 0.2,

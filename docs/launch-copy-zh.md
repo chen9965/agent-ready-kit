@@ -9,7 +9,7 @@
 - 生成展示产物：`npx @chent6767/agent-ready-kit . --out .agent-ready`
 - 直接扫 GitHub 仓库：`npx @chent6767/agent-ready-kit https://github.com/owner/repo --out .agent-ready`
 - GitHub 源码方式：`npx github:chen9965/agent-ready-kit .`
-- 核心卖点：它不是 AI 套壳，而是给仓库做一次“AI 编码代理上岗体检”。CLI 默认优先走维护者托管的大模型代理，普通用户不需要先申请模型 key；托管代理不可用时，再提示高级用户自带 key 或切到本地扫描。
+- 核心卖点：它不是 AI 套壳，而是给仓库做一次“AI 编码代理上岗体检”。CLI 默认优先走维护者托管的大模型代理，代理服务端可以用 Agnes key，普通用户不需要先申请模型 key；托管代理不可用时，再提示高级用户自带 key 或切到本地扫描。
 
 视频配乐署名：
 
