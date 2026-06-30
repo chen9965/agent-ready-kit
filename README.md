@@ -323,7 +323,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: chen9965/agent-ready-kit@main
+      - uses: chen9965/agent-ready-kit@v0.6.2
         with:
           min-score: 70
 ```
