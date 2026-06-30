@@ -24,14 +24,18 @@ AI coding agents are much better when a repository tells them where to look, wha
 ## 10-second quickstart / 10 秒快速开始
 
 ```bash
-npx agent-ready-kit scan .
-npx agent-ready-kit init . --write
-npx agent-ready-kit report . --open
+npx github:chen9965/agent-ready-kit scan .
+npx github:chen9965/agent-ready-kit init . --write
+npx github:chen9965/agent-ready-kit report . --open
 ```
 
 No API key. No model account. Static analysis only.
 
 无需 API key，无需模型账号，只做静态分析。
+
+After npm publication, the shorter `npx agent-ready-kit scan .` form will work too.
+
+发布到 npm 后，也可以使用更短的 `npx agent-ready-kit scan .` 形式。
 
 ## Commands / 命令
 
