@@ -2,7 +2,7 @@
 
 - Repository / 仓库: `https://github.com/nodejs/node.git`
 - Commit / 提交: `0c59d786393d`
-- Scan command / 扫描命令: `node dist/cli.js scan node --markdown`
+- Scan command / 扫描命令: `node dist/cli.js scan node --out .agent-ready/showcase-results/node`
 - Generated / 生成时间: 2026-06-30
 
 ## Agent Ready Score / AI 代理就绪度
@@ -51,3 +51,9 @@
 Node.js has strong docs, tests, CI, and repo-map signals, but the current scan shows a lower agent-onboarding score because no `AGENTS.md` was detected. The detected stack is conservative because this repository does not look like a standard package-script-driven Node app.
 
 Node.js 的文档、测试、CI 和仓库地图信号很强，但当前扫描没有检测到 `AGENTS.md`，所以 Agent 上手体验分较低。技术栈识别偏保守，因为这个仓库并不是标准的 package scripts 驱动型 Node 应用。
+
+## Generated Artifacts / 生成产物
+
+This run writes `scan.json`, `report.md`, `before-after.md`, and `action-plan.md`. The before/after artifact is especially useful here because the repo is large and mature, but agent-specific onboarding is still a visible missing signal.
+
+本次扫描会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`。这里的前后对比尤其有用：仓库很成熟，但 Agent 专属上手说明仍然是一个明确缺口。

@@ -2,7 +2,7 @@
 
 - Repository / 仓库: `https://github.com/facebook/react.git`
 - Commit / 提交: `d4e44545a984`
-- Scan command / 扫描命令: `node dist/cli.js scan react --markdown`
+- Scan command / 扫描命令: `node dist/cli.js scan react --out .agent-ready/showcase-results/react`
 - Generated / 生成时间: 2026-06-30
 
 ## Agent Ready Score / AI 代理就绪度
@@ -52,3 +52,9 @@
 React has strong general engineering signals, but this scan shows why an AI coding agent can still benefit from a repo-specific `AGENTS.md` and an explicit repo map.
 
 React 的通用工程信号很强，但扫描结果也说明：即使是成熟大仓库，AI 编码代理仍然需要仓库专属 `AGENTS.md` 和明确的仓库地图。
+
+## Generated Artifacts / 生成产物
+
+This run writes `scan.json`, `report.md`, `before-after.md`, and `action-plan.md`. The before/after file explains the user-visible difference: before the tool, an agent has to infer onboarding and repo structure; after the scan, those gaps become explicit files and prioritized tasks.
+
+本次扫描会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`。其中 `before-after.md` 会说明使用前后区别：使用前 Agent 只能推断上手流程和仓库结构；扫描后，这些缺口会变成明确文件和优先级任务。

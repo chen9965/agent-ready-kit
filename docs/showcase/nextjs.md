@@ -2,7 +2,7 @@
 
 - Repository / 仓库: `https://github.com/vercel/next.js.git`
 - Commit / 提交: `f84c69476a24`
-- Scan command / 扫描命令: `node dist/cli.js scan next.js --markdown`
+- Scan command / 扫描命令: `node dist/cli.js scan next.js --out .agent-ready/showcase-results/next.js`
 - Generated / 生成时间: 2026-06-30
 
 ## Agent Ready Score / AI 代理就绪度
@@ -50,3 +50,9 @@
 Next.js is a strong example of an agent-ready repository shape: it has docs, tests, scripts, CI, agent instructions, and repo-map evidence. The remaining findings are conservative safety and maintainability review prompts.
 
 Next.js 是一个比较强的 Agent-ready 仓库样本：文档、测试、脚本、CI、Agent 说明和仓库地图信号都比较明确。剩余发现主要是保守的安全复核和可维护性提醒。
+
+## Generated Artifacts / 生成产物
+
+This run writes `scan.json`, `report.md`, `before-after.md`, and `action-plan.md`. For an already mature repository, the artifact bundle is useful as a repeatable baseline and a concise explanation of remaining safety review prompts.
+
+本次扫描会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`。对于已经成熟的仓库，这组产物可以作为可复跑基线，也能简洁解释剩余安全复核点。

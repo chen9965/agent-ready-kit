@@ -15,8 +15,19 @@ Important note: `possible-secrets` means "review needed". It can match test fixt
 ## Command / 运行命令
 
 ```bash
-node dist/cli.js scan <repo-path> --markdown
+node dist/cli.js scan <repo-path> --out .agent-ready/showcase-results/<repo>
 ```
+
+Each run now produces four files:
+
+每次扫描都会生成四个文件：
+
+| File | Purpose | 中文说明 |
+| --- | --- | --- |
+| `scan.json` | Raw result for machines, CI, dashboards, and comparisons. | 原始扫描结果，适合机器读取、CI、仪表盘和对比。 |
+| `report.md` | Human-readable score, breakdown, and findings. | 人能直接看的分数、评分明细和问题。 |
+| `before-after.md` | Explains the difference between guessing the repo and having scan artifacts. | 解释没有工具时只能猜什么、扫描后多了哪些明确产物。 |
+| `action-plan.md` | Prioritized next steps for improving agent readiness. | 提升 Agent 就绪度的优先级行动计划。 |
 
 ## Summary / 汇总
 

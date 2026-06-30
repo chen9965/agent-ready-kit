@@ -2,6 +2,7 @@ import { Command } from "commander";
 import pc from "picocolors";
 import { enhanceScanWithLlm } from "../core/llm.js";
 import { scanRepository } from "../core/scanner.js";
+import { writeScanArtifacts } from "../render/artifacts.js";
 import { renderMarkdownSummary } from "../render/markdown.js";
 import { renderScanSummary } from "../render/text.js";
 
@@ -12,10 +13,11 @@ export function scanCommand(): Command {
     .option("--json", "print JSON / 输出 JSON")
     .option("--markdown", "print GitHub-flavored Markdown / 输出 Markdown")
     .option("--fail-under <score>", "exit with code 1 below this score / 低于该分数时返回失败")
+    .option("--out <dir>", "write scan artifacts to a directory / 写入扫描产物目录")
     .option("--llm", "add optional model-enhanced recommendations / 添加可选大模型增强建议")
     .option("--llm-base-url <url>", "OpenAI-compatible API base URL / OpenAI 兼容接口地址")
     .option("--llm-model <model>", "provider model name / 服务商模型名称")
-    .action(async (targetPath: string, options: { json?: boolean; markdown?: boolean; failUnder?: string; llm?: boolean; llmBaseUrl?: string; llmModel?: string }) => {
+    .action(async (targetPath: string, options: { json?: boolean; markdown?: boolean; failUnder?: string; out?: string; llm?: boolean; llmBaseUrl?: string; llmModel?: string }) => {
       if (options.json && options.markdown) {
         throw new Error("Use either --json or --markdown, not both. / --json 和 --markdown 不能同时使用。");
       }
@@ -39,6 +41,12 @@ export function scanCommand(): Command {
         console.log(renderMarkdownSummary(scan, { minScore: failUnder ?? 70 }));
       } else {
         console.log(renderScanSummary(scan));
+      }
+
+      if (options.out) {
+        const result = await writeScanArtifacts(scan, options.out);
+        console.log(`${pc.green("Artifacts written / 扫描产物已生成")}: ${result.outputDir}`);
+        for (const file of result.written) console.log(`- ${file}`);
       }
 
       if (failUnder !== undefined && scan.score.overall < failUnder) {

@@ -14,4 +14,5 @@ export { generateFiles, writeGeneratedFiles } from "./core/generator.js";
 export { enhanceScanWithLlm, loadLlmOptions } from "./core/llm.js";
 export { scanRepository } from "./core/scanner.js";
 export { renderHtml, writeHtmlReport } from "./render/html.js";
+export { renderActionPlan, renderBeforeAfter, writeScanArtifacts } from "./render/artifacts.js";
 export { renderMarkdownSummary } from "./render/markdown.js";

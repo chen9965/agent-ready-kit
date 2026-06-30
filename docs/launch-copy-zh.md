@@ -6,8 +6,13 @@
 
 - GitHub 仓库：https://github.com/chen9965/agent-ready-kit
 - 可用方式：`npx @chent6767/agent-ready-kit scan .`
+- 生成展示产物：`npx @chent6767/agent-ready-kit scan . --out .agent-ready`
 - GitHub 源码方式：`npx github:chen9965/agent-ready-kit scan .`
 - 核心卖点：它不是 AI 套壳，而是给仓库做一次“AI 编码代理上岗体检”。默认不需要 API Key，不上传源码；可选接入 OpenAI 兼容大模型，把静态扫描结果润色成更像 reviewer 的建议。
+
+视频配乐署名：
+
+`Carefree` by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 License. https://creativecommons.org/licenses/by/4.0/
 
 ## 核心定位
 
@@ -15,7 +20,7 @@
 
 我做了一个小工具，帮仓库把 AI 编码代理最需要的规则讲清楚：怎么安装、怎么测试、哪些目录别碰、改完怎么验证。
 
-它会给仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 CI 门禁。
+它会给仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 CI 门禁。现在 `scan --out` 还会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`，适合大仓库展示“使用前后到底差在哪”。
 
 更短版本：
 
@@ -96,10 +101,11 @@ Topics 建议：
 
 ```bash
 npx @chent6767/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit scan . --out .agent-ready
 npx @chent6767/agent-ready-kit init . --write
 ```
 
-它默认不需要 API Key，只做本地静态分析。你也可以用 `--llm` 接入 OpenAI 兼容接口，让免费额度、自建模型或第三方模型基于扫描摘要生成更像 reviewer 的建议。
+它默认不需要 API Key，只做本地静态分析。你也可以用 `--llm` 接入 OpenAI 兼容接口，让免费额度、自建模型或第三方模型基于扫描摘要生成更像 reviewer 的建议。跑大仓库时推荐加 `--out .agent-ready`，这样会直接生成前后对比和行动计划。
 
 仓库地址：
 
@@ -148,6 +154,7 @@ https://github.com/chen9965/agent-ready-kit
 然后生成一套 Agent 能直接使用的协作资产：
 
 - 双语就绪度评分
+- 扫描 JSON、Markdown 报告、前后对比和行动计划
 - `AGENTS.md`
 - 任务卡
 - guard rules
@@ -159,6 +166,7 @@ https://github.com/chen9965/agent-ready-kit
 
 ```bash
 npx @chent6767/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit scan . --out .agent-ready
 npx @chent6767/agent-ready-kit init . --write
 ```
 
@@ -192,7 +200,7 @@ AI 编码代理时代，仓库也需要一份“上岗说明书”
 
 所以我做了一个开源工具：`agent-ready-kit`。
 
-它会给仓库做一次静态扫描，生成一个 AI Agent readiness score，并输出 `AGENTS.md`、任务卡、报告和机器可读 guard rules。它也可以作为 GitHub Action 放进 CI，在 PR 里检查仓库是否低于最低就绪度分数。
+它会给仓库做一次静态扫描，生成一个 AI Agent readiness score，并输出 `scan.json`、`before-after.md`、`action-plan.md`、`AGENTS.md`、任务卡、报告和机器可读 guard rules。它也可以作为 GitHub Action 放进 CI，在 PR 里检查仓库是否低于最低就绪度分数。
 
 它默认不需要 API Key，也不上传源码。需要更自然的建议时，可以选择接入 OpenAI 兼容大模型。
 
@@ -200,6 +208,7 @@ AI 编码代理时代，仓库也需要一份“上岗说明书”
 
 ```bash
 npx @chent6767/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit scan . --out .agent-ready
 npx @chent6767/agent-ready-kit init . --write
 ```
 
@@ -217,12 +226,13 @@ https://github.com/chen9965/agent-ready-kit
 
 它可以检查一个仓库有没有讲清 AI 编码代理最需要的信息：安装命令、测试命令、CI、目录结构、安全边界和 `AGENTS.md`。
 
-跑完以后会得到 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 GitHub Action 门禁。现在也支持可选大模型增强建议。
+跑完以后会得到 AI Agent 就绪度分数，并生成前后对比、行动计划、`AGENTS.md`、任务卡、guard rules、报告和 GitHub Action 门禁。现在也支持可选大模型增强建议。
 
 适合正在用 Codex、Claude Code、Cursor、Copilot coding agent 的人。它默认不需要 API Key；如果你有免费模型额度、自建模型或第三方兼容接口，也可以打开 `--llm` 做增强建议。
 
 ```bash
 npx @chent6767/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit scan . --out .agent-ready
 ```
 
 GitHub：
@@ -235,7 +245,7 @@ https://github.com/chen9965/agent-ready-kit
 
 我刚开源了个和 AI 编码代理相关的小工具，叫 `agent-ready-kit`。它不是 AI 套壳，而是帮仓库补齐给 Agent 看的说明：怎么安装、怎么测试、哪些目录别碰、改完怎么验证。
 
-跑完会生成评分、`AGENTS.md`、任务卡、guard rules、报告和 CI 门禁。
+跑完会生成评分、前后对比、行动计划、`AGENTS.md`、任务卡、guard rules、报告和 CI 门禁。
 
 现在用 Codex、Claude Code、Cursor 的人应该会有感：仓库上下文写得好不好，直接影响 Agent 会不会乱改。
 
@@ -243,6 +253,7 @@ https://github.com/chen9965/agent-ready-kit
 
 ```bash
 npx @chent6767/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit scan . --out .agent-ready
 ```
 
 项目地址：
@@ -261,7 +272,7 @@ https://github.com/chen9965/agent-ready-kit
 
 我做了一个开源工具，叫 `agent-ready-kit`。它会扫描你的仓库，检查 README、测试脚本、CI、仓库地图、安全边界和 `AGENTS.md` 这些 Agent 协作信号。
 
-跑完以后，它会给出一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules 和报告。默认不需要 API Key；如果你有免费模型额度，也可以开启大模型增强建议。
+跑完以后，它会给出一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules 和报告。对于大仓库，还可以用 `scan --out` 生成 `scan.json`、`before-after.md` 和 `action-plan.md`，直接看出使用前只能靠猜、使用后有哪些明确产物。默认不需要 API Key；如果你有免费模型额度，也可以开启大模型增强建议。
 
 演示：
 
@@ -269,7 +280,16 @@ https://github.com/chen9965/agent-ready-kit
 
 ```bash
 npx @chent6767/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit scan . --out .agent-ready
 ```
+
+如果是大仓库，可以加上：
+
+```bash
+npx @chent6767/agent-ready-kit scan . --out .agent-ready
+```
+
+这会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`，直接告诉你使用前 Agent 在猜什么、使用后仓库多了哪些明确材料。
 
 第二条命令生成代理说明和任务卡：
 

@@ -2,7 +2,7 @@
 
 - Repository / 仓库: `https://github.com/microsoft/TypeScript.git`
 - Commit / 提交: `637d5746b702`
-- Scan command / 扫描命令: `node dist/cli.js scan TypeScript --markdown`
+- Scan command / 扫描命令: `node dist/cli.js scan TypeScript --out .agent-ready/showcase-results/TypeScript`
 - Generated / 生成时间: 2026-06-30
 
 ## Agent Ready Score / AI 代理就绪度
@@ -51,3 +51,9 @@
 TypeScript scores well because tests, scripts, CI, and agent instructions are visible. The scanner still highlights repo-map and large-file orientation as areas where coding agents can benefit from extra context.
 
 TypeScript 得分较高，因为测试、脚本、CI 和 Agent 说明信号明确。工具仍然会提示仓库地图和超大文件定位说明，这些信息能减少编码代理误改。
+
+## Generated Artifacts / 生成产物
+
+This run writes `scan.json`, `report.md`, `before-after.md`, and `action-plan.md`. The generated action plan turns broad findings such as repo-map gaps and large files into concrete follow-up work.
+
+本次扫描会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`。生成的行动计划会把仓库地图缺口、超大文件等宽泛发现转成具体后续工作。

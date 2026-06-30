@@ -7,7 +7,7 @@ import { scanCommand } from "./commands/scan.js";
 const program = new Command()
   .name("agent-ready")
   .description("Make any repository AI-agent-ready in 60 seconds. / 60 秒让仓库适配 AI 编码代理。")
-  .version("0.3.0");
+  .version("0.3.1");
 
 program.addCommand(scanCommand());
 program.addCommand(initCommand());
