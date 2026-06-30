@@ -5,8 +5,8 @@
 当前真实状态：
 
 - GitHub 仓库：https://github.com/chen9965/agent-ready-kit
-- 可用方式：`npx github:chen9965/agent-ready-kit scan .`
-- npm 短命令待发布：`npx agent-ready-kit scan .`
+- 可用方式：`npx @chent6767/agent-ready-kit scan .`
+- GitHub 源码方式：`npx github:chen9965/agent-ready-kit scan .`
 - 核心卖点：不需要 API Key，不调用模型，只扫描仓库并生成 AI Agent 协作说明。
 
 ## 核心定位
@@ -56,8 +56,8 @@ Make any repository AI-agent-ready in 60 seconds.
 使用方式：
 
 ```bash
-npx github:chen9965/agent-ready-kit scan .
-npx github:chen9965/agent-ready-kit init . --write
+npx @chent6767/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit init . --write
 ```
 
 它不需要 API Key，不调用模型，只做本地静态分析。比较适合先把仓库整理成“AI Agent 读得懂、改得动、能验证”的状态。
@@ -118,8 +118,8 @@ https://github.com/chen9965/agent-ready-kit
 快速试用：
 
 ```bash
-npx github:chen9965/agent-ready-kit scan .
-npx github:chen9965/agent-ready-kit init . --write
+npx @chent6767/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit init . --write
 ```
 
 仓库地址：
@@ -159,8 +159,8 @@ AI 编码代理时代，仓库也需要一份“上岗说明书”
 试用：
 
 ```bash
-npx github:chen9965/agent-ready-kit scan .
-npx github:chen9965/agent-ready-kit init . --write
+npx @chent6767/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit init . --write
 ```
 
 GitHub：
@@ -180,7 +180,7 @@ https://github.com/chen9965/agent-ready-kit
 适合正在用 Codex、Claude Code、Cursor、Copilot coding agent 的人。它不需要 API Key，不调用模型，只做本地静态分析。
 
 ```bash
-npx github:chen9965/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit scan .
 ```
 
 GitHub：
@@ -198,7 +198,7 @@ https://github.com/chen9965/agent-ready-kit
 可以直接跑：
 
 ```bash
-npx github:chen9965/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit scan .
 ```
 
 项目地址：
@@ -222,13 +222,13 @@ https://github.com/chen9965/agent-ready-kit
 第一条命令扫描当前仓库：
 
 ```bash
-npx github:chen9965/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit scan .
 ```
 
 第二条命令生成代理说明和任务卡：
 
 ```bash
-npx github:chen9965/agent-ready-kit init . --write
+npx @chent6767/agent-ready-kit init . --write
 ```
 
 结尾：
@@ -265,16 +265,16 @@ I think it may be useful for projects that want Codex, Claude Code, Cursor, or C
 
 有人问“国内能不能用”：
 
-当前可以通过 GitHub npx 方式使用：
+当前可以直接通过 npm 使用：
+
+```bash
+npx @chent6767/agent-ready-kit scan .
+```
+
+如果 npm 网络不稳定，也可以从 GitHub 源码运行：
 
 ```bash
 npx github:chen9965/agent-ready-kit scan .
-```
-
-npm 发布后会切换到更短的：
-
-```bash
-npx agent-ready-kit scan .
 ```
 
 有人问“为什么需要这个”：

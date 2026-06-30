@@ -28,18 +28,18 @@ It is designed for Codex, Claude Code, Cursor, Copilot coding agent workflows, a
 ## 10-second quickstart / 10 秒快速开始
 
 ```bash
-npx github:chen9965/agent-ready-kit scan .
-npx github:chen9965/agent-ready-kit init . --write
-npx github:chen9965/agent-ready-kit report . --open
+npx @chent6767/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit init . --write
+npx @chent6767/agent-ready-kit report . --open
 ```
 
 No API key. No model account. Static analysis only.
 
 无需 API key，无需模型账号，只做静态分析。
 
-After npm publication, the shorter `npx agent-ready-kit scan .` form will work too.
+GitHub source install also works: `npx github:chen9965/agent-ready-kit scan .`.
 
-发布到 npm 后，也可以使用更短的 `npx agent-ready-kit scan .` 形式。
+也可以直接从 GitHub 安装运行：`npx github:chen9965/agent-ready-kit scan .`。
 
 ## GitHub Action / GitHub Actions 用法
 

@@ -4,7 +4,7 @@
   <circle cx="66" cy="61" r="7" fill="#ef4444"/>
   <circle cx="90" cy="61" r="7" fill="#f59e0b"/>
   <circle cx="114" cy="61" r="7" fill="#22c55e"/>
-  <text x="58" y="108" fill="#fafafa" font-family="Consolas, Monaco, monospace" font-size="24">$ npx agent-ready-kit scan .</text>
+  <text x="58" y="108" fill="#fafafa" font-family="Consolas, Monaco, monospace" font-size="24">$ npx @chent6767/agent-ready-kit scan .</text>
   <text x="58" y="158" fill="#86efac" font-family="Consolas, Monaco, monospace" font-size="24">Agent readiness / 代理就绪度: good 78/100</text>
   <text x="58" y="204" fill="#e5e7eb" font-family="Consolas, Monaco, monospace" font-size="21">Stack / 技术栈: Node.js, React, TypeScript, Vite</text>
   <text x="58" y="242" fill="#e5e7eb" font-family="Consolas, Monaco, monospace" font-size="21">Score breakdown / 评分明细</text>
