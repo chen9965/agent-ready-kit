@@ -123,11 +123,11 @@ https://github.com/chen9965/agent-ready-kit
 
 问：为什么要接大模型？
 
-答：静态扫描能找到 README、脚本、测试和 CI；大模型能把这些信号整理成更适合 Agent 使用的上下文和建议。默认路径免 API Key，也可以用 `--no-llm` 只做本地扫描。
+答：它本来就应该主要靠大模型。静态扫描负责找 README、脚本、测试、CI 和代码采样；大模型负责把这些信号整理成更适合 Agent 使用的上下文和建议。默认路径免 API Key，只有隐私或故障兜底时才用 `--no-llm`。
 
 问：国内能不能用？
 
-答：npm 能访问时直接运行 `npx @chent6767/agent-ready-kit .`。如果默认建议不可用，CLI 仍然可以回退到本地扫描。
+答：npm 能访问时直接运行 `npx @chent6767/agent-ready-kit .`。默认就是 LLM-first；如果托管建议不可用，优先自带 OpenAI 兼容 key，最后才回退到本地扫描。
 
 ## 音乐署名
 

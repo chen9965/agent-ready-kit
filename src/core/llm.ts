@@ -50,8 +50,8 @@ interface JsonHttpResponse<T> {
 const defaultBaseUrl = "https://openrouter.ai/api/v1";
 const defaultModel = "openrouter/free";
 const defaultManagedUrl = "https://agent-ready-kit-llm.agent-ready-kit.workers.dev/v1/recommend";
-const defaultTimeoutMs = 20_000;
-const defaultManagedTimeoutMs = 20_000;
+const defaultTimeoutMs = 60_000;
+const defaultManagedTimeoutMs = 60_000;
 
 export function loadLlmOptions(overrides: LlmOptions = {}): LlmOptions {
   const provider = overrides.provider ?? process.env.AGENT_READY_LLM_PROVIDER;
@@ -86,12 +86,26 @@ export async function enhanceScanWithLlm(scan: ScanResult, options: LlmOptions =
     : undefined;
 
   if (config.useManaged !== false && config.managedUrl && !config.apiKey) {
-    const managed = await enhanceScanWithManagedProxy(scan, config, codeContext);
+    const managed = await enhanceScanWithManagedProxy(
+      scan,
+      config,
+      codeContext,
+      codeContext ? Math.min(config.managedTimeoutMs ?? defaultManagedTimeoutMs, 30_000) : undefined
+    );
     if (managed.status === "ok") return managed;
+    if (codeContext) {
+      const summaryRetry = await enhanceScanWithManagedProxy(scan, config, undefined);
+      if (summaryRetry.status === "ok") return summaryRetry;
+      return {
+        scan,
+        status: "skipped",
+        message: `${managed.message ?? "Managed LLM is unavailable."} Summary-only retry also failed: ${summaryRetry.message ?? "managed LLM unavailable"}. Set AGENT_READY_LLM_API_KEY to use your own OpenAI-compatible key, or use --no-llm only for emergency local-only scans. / 托管大模型不可用，摘要重试也失败：${summaryRetry.message ?? "托管大模型不可用"}。可设置 AGENT_READY_LLM_API_KEY 使用自己的 key；只有应急纯本地扫描才使用 --no-llm。`
+      };
+    }
     return {
       scan,
       status: "skipped",
-      message: `${managed.message ?? "Managed LLM is unavailable."} Set AGENT_READY_LLM_API_KEY to use your own OpenAI-compatible key, or use --no-llm for local-only scan. / 托管大模型不可用时，可设置 AGENT_READY_LLM_API_KEY 使用自己的 key，或用 --no-llm 只做本地扫描。`
+      message: `${managed.message ?? "Managed LLM is unavailable."} Set AGENT_READY_LLM_API_KEY to use your own OpenAI-compatible key, or use --no-llm only for emergency local-only scans. / 托管大模型不可用时，可设置 AGENT_READY_LLM_API_KEY 使用自己的 key；只有应急纯本地扫描才使用 --no-llm。`
     };
   }
 
@@ -144,10 +158,51 @@ export async function enhanceScanWithLlm(scan: ScanResult, options: LlmOptions =
   }
 }
 
+export function withLlmRunStatus(result: LlmEnhanceResult): ScanResult {
+  const llm = result.scan.llm;
+  if (result.status === "ok" && llm) {
+    const provider = llm.provider.managed ? "managed" : "byok";
+    return {
+      ...result.scan,
+      llmStatus: {
+        status: "active",
+        provider,
+        sourceMode: llm.sourceMode,
+        message:
+          provider === "managed"
+            ? "LLM-first analysis used the managed endpoint. / 已使用托管大模型进行优先分析。"
+            : "LLM-first analysis used the configured OpenAI-compatible provider. / 已使用配置的大模型服务进行优先分析。"
+      }
+    };
+  }
+
+  return {
+    ...result.scan,
+    llmStatus: {
+      status: "local-fallback",
+      message:
+        result.message ??
+        "LLM-first analysis was unavailable; deterministic local scan was used as a fallback. / 大模型优先分析不可用，已退回本地确定性扫描。"
+    }
+  };
+}
+
+export function withLlmDisabledStatus(scan: ScanResult): ScanResult {
+  return {
+    ...scan,
+    llmStatus: {
+      status: "disabled",
+      message:
+        "LLM was explicitly disabled; deterministic local scan only. Use this only for privacy or outage fallback. / 已显式关闭大模型，只做本地确定性扫描；建议仅在隐私或故障兜底时使用。"
+    }
+  };
+}
+
 async function enhanceScanWithManagedProxy(
   scan: ScanResult,
   config: LlmOptions,
-  codeContext: RepositoryCodeContext | undefined
+  codeContext: RepositoryCodeContext | undefined,
+  timeoutOverrideMs?: number
 ): Promise<LlmEnhanceResult> {
   const managedUrl = config.managedUrl ? normalizeBaseUrl(config.managedUrl) : undefined;
   if (!managedUrl) return { scan, status: "skipped", message: "Managed LLM endpoint is not configured." };
@@ -155,7 +210,7 @@ async function enhanceScanWithManagedProxy(
   const controller = new AbortController();
   const managedRequestTimeoutMs = Math.min(
     config.timeoutMs ?? defaultTimeoutMs,
-    config.managedTimeoutMs ?? defaultManagedTimeoutMs
+    timeoutOverrideMs ?? config.managedTimeoutMs ?? defaultManagedTimeoutMs
   );
   const timeout = setTimeout(() => controller.abort(), managedRequestTimeoutMs);
   const promptPayload = buildPromptPayload(scan, codeContext);
@@ -534,8 +589,13 @@ function getProxyUrl(targetUrl: string): URL | undefined {
 
   const proxyValue =
     target.protocol === "https:"
-      ? process.env.HTTPS_PROXY ?? process.env.https_proxy ?? process.env.HTTP_PROXY ?? process.env.http_proxy
-      : process.env.HTTP_PROXY ?? process.env.http_proxy;
+      ? process.env.HTTPS_PROXY ??
+        process.env.https_proxy ??
+        process.env.HTTP_PROXY ??
+        process.env.http_proxy ??
+        process.env.ALL_PROXY ??
+        process.env.all_proxy
+      : process.env.HTTP_PROXY ?? process.env.http_proxy ?? process.env.ALL_PROXY ?? process.env.all_proxy;
 
   if (!proxyValue || isDisabled(proxyValue)) return undefined;
 

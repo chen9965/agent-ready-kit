@@ -17,6 +17,7 @@ export function renderMarkdownSummary(scan: ScanResult, options: MarkdownSummary
 - **Target / 目标:** ${targetLabel(scan)}
 - **Stack / 技术栈:** ${stack}
 - **Files scanned / 扫描文件:** ${scan.fileCount}
+- **LLM mode / 大模型模式:** ${llmModeLabel(scan)}
 
 ## Score Breakdown / 评分明细
 
@@ -53,6 +54,21 @@ function escapeCell(value: string): string {
 function targetLabel(scan: ScanResult): string {
   if (scan.target?.sourceUrl) return scan.target.sourceUrl;
   return `\`${scan.root}\``;
+}
+
+function llmModeLabel(scan: ScanResult): string {
+  if (scan.llm) {
+    const provider = scan.llm.provider.managed ? "managed" : "BYOK";
+    const source = scan.llm.sourceMode === "sampled-code" ? "sampled code / 采样代码" : "scan summary / 扫描摘要";
+    return `active / 已启用 (${provider}, ${source})`;
+  }
+  if (scan.llmStatus?.status === "local-fallback") {
+    return "local fallback / 本地兜底 (LLM unavailable / 大模型不可用)";
+  }
+  if (scan.llmStatus?.status === "disabled") {
+    return "disabled / 已关闭 (local-only emergency mode / 纯本地应急模式)";
+  }
+  return "not recorded / 未记录";
 }
 
 function renderLlm(scan: ScanResult): string {

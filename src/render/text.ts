@@ -10,6 +10,7 @@ export function renderScanSummary(scan: ScanResult): string {
     `${pc.bold("Stack / 技术栈")}: ${stack}`,
     `${pc.bold("Package manager / 包管理器")}: ${scan.packageManager ?? "not detected / 未检测到"}`,
     `${pc.bold("Files scanned / 扫描文件")}: ${scan.fileCount}`,
+    `${pc.bold("LLM mode / 大模型模式")}: ${renderLlmStatus(scan)}`,
     "",
     pc.bold("Score breakdown / 评分明细"),
     `  docs / 文档: ${scan.score.docs}`,
@@ -48,6 +49,22 @@ export function renderScanSummary(scan: ScanResult): string {
   }
 
   return `${lines.join("\n")}\n`;
+}
+
+function renderLlmStatus(scan: ScanResult): string {
+  const status = scan.llmStatus;
+  if (scan.llm && (!status || status.status === "active")) {
+    const provider = scan.llm.provider.managed ? "managed" : "BYOK";
+    const source = scan.llm.sourceMode === "sampled-code" ? "sampled code / 采样代码" : "scan summary / 扫描摘要";
+    return `${pc.green("active")} (${provider}, ${source})`;
+  }
+  if (status?.status === "local-fallback") {
+    return `${pc.yellow("local fallback")} (LLM unavailable / 大模型不可用)`;
+  }
+  if (status?.status === "disabled") {
+    return `${pc.yellow("disabled")} (--no-llm / 已关闭)`;
+  }
+  return pc.yellow("pending / 未运行");
 }
 
 function scoreColor(score: number): string {

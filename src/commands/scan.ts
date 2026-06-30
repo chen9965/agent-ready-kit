@@ -1,7 +1,7 @@
 import path from "node:path";
 import { Command } from "commander";
 import pc from "picocolors";
-import { enhanceScanWithLlm } from "../core/llm.js";
+import { enhanceScanWithLlm, withLlmDisabledStatus, withLlmRunStatus } from "../core/llm.js";
 import { scanRepository } from "../core/scanner.js";
 import { resolveScanTarget, type ResolvedScanTarget } from "../core/target.js";
 import { writeScanArtifacts } from "../render/artifacts.js";
@@ -78,10 +78,12 @@ export async function runScanCommand(targetPath: string, options: ScanCommandOpt
         codeMaxFiles: parseOptionalPositiveInt(options.llmMaxFiles, "--llm-max-files"),
         codeMaxChars: parseOptionalPositiveInt(options.llmMaxChars, "--llm-max-chars")
       });
-      scan = result.scan;
+      scan = withLlmRunStatus(result);
       if (result.status !== "ok" && result.message) {
         console.error(`${pc.yellow("LLM note / 大模型提示")}: ${result.message}`);
       }
+    } else {
+      scan = withLlmDisabledStatus(scan);
     }
 
     const failUnder = parseOptionalScore(options.failUnder);

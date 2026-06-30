@@ -19,6 +19,30 @@ inputs:
     description: Write a Markdown report to the GitHub Actions step summary.
     required: false
     default: "true"
+  llm:
+    description: Run LLM-first analysis. Set to false only for emergency local-only scans.
+    required: false
+    default: "true"
+  managed-llm:
+    description: Use the maintainer-hosted managed LLM endpoint when no API key is configured.
+    required: false
+    default: "true"
+  llm-managed-url:
+    description: Override the managed LLM endpoint URL.
+    required: false
+    default: ""
+  llm-summary:
+    description: Send only the scan summary to the LLM instead of sampled code context.
+    required: false
+    default: "false"
+  llm-max-files:
+    description: Maximum sampled files sent to the LLM.
+    required: false
+    default: ""
+  llm-max-chars:
+    description: Maximum sampled characters sent to the LLM.
+    required: false
+    default: ""
 
 outputs:
   score:
@@ -49,4 +73,10 @@ runs:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_MIN_SCORE: ${{ inputs.min-score }}
         INPUT_WRITE_SUMMARY: ${{ inputs.write-summary }}
+        INPUT_LLM: ${{ inputs.llm }}
+        INPUT_MANAGED_LLM: ${{ inputs.managed-llm }}
+        INPUT_LLM_MANAGED_URL: ${{ inputs.llm-managed-url }}
+        INPUT_LLM_SUMMARY: ${{ inputs.llm-summary }}
+        INPUT_LLM_MAX_FILES: ${{ inputs.llm-max-files }}
+        INPUT_LLM_MAX_CHARS: ${{ inputs.llm-max-chars }}
       run: node "$GITHUB_ACTION_PATH/dist/action.js"

@@ -1,5 +1,6 @@
 import { appendFile } from "node:fs/promises";
 import path from "node:path";
+import { enhanceScanWithLlm, withLlmDisabledStatus, withLlmRunStatus } from "./core/llm.js";
 import { scanRepository } from "./core/scanner.js";
 import { renderMarkdownSummary } from "./render/markdown.js";
 
@@ -7,9 +8,26 @@ async function main(): Promise<void> {
   const inputPath = readInput("INPUT_PATH", ".");
   const minScore = parseScore(readInput("INPUT_MIN_SCORE", "70"));
   const writeSummary = parseBoolean(readInput("INPUT_WRITE_SUMMARY", "true"));
+  const useLlm = parseBoolean(readInput("INPUT_LLM", "true"));
   const targetPath = path.resolve(process.cwd(), inputPath);
 
-  const scan = await scanRepository(targetPath);
+  let scan = await scanRepository(targetPath);
+  if (useLlm) {
+    const result = await enhanceScanWithLlm(scan, {
+      managedUrl: readOptionalInput("INPUT_LLM_MANAGED_URL"),
+      useManaged: parseBoolean(readInput("INPUT_MANAGED_LLM", "true")),
+      includeCodeContext: !parseBoolean(readInput("INPUT_LLM_SUMMARY", "false")),
+      codeMaxFiles: parseOptionalPositiveInteger(readOptionalInput("INPUT_LLM_MAX_FILES"), "llm-max-files"),
+      codeMaxChars: parseOptionalPositiveInteger(readOptionalInput("INPUT_LLM_MAX_CHARS"), "llm-max-chars")
+    });
+    scan = withLlmRunStatus(result);
+    if (result.status !== "ok" && result.message) {
+      console.warn(`agent-ready LLM fallback: ${result.message}`);
+    }
+  } else {
+    scan = withLlmDisabledStatus(scan);
+  }
+
   const status = scan.score.overall >= minScore ? "pass" : "fail";
 
   await writeOutput("score", String(scan.score.overall));
@@ -35,6 +53,11 @@ function readInput(name: string, fallback: string): string {
   return value && value.length > 0 ? value : fallback;
 }
 
+function readOptionalInput(name: string): string | undefined {
+  const value = process.env[name]?.trim();
+  return value && value.length > 0 ? value : undefined;
+}
+
 function parseScore(value: string): number {
   const score = Number.parseInt(value, 10);
   if (!Number.isInteger(score) || score < 0 || score > 100) {
@@ -45,6 +68,15 @@ function parseScore(value: string): number {
 
 function parseBoolean(value: string): boolean {
   return ["1", "true", "yes", "on"].includes(value.toLowerCase());
+}
+
+function parseOptionalPositiveInteger(value: string | undefined, label: string): number | undefined {
+  if (value === undefined) return undefined;
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(`${label} must be a positive integer, received "${value}"`);
+  }
+  return parsed;
 }
 
 async function writeOutput(name: string, value: string): Promise<void> {

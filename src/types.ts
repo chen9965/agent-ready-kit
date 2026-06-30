@@ -51,6 +51,7 @@ export interface ScanResult {
   fileCount: number;
   ignoredCount: number;
   llm?: LlmInsight;
+  llmStatus?: LlmRunStatus;
 }
 
 export interface ScanTargetMetadata {
@@ -78,6 +79,13 @@ export interface LlmInsight {
   priorityFixes: string[];
   priorityFixesZh: string[];
   suggestedIssueTitles: string[];
+}
+
+export interface LlmRunStatus {
+  status: "active" | "local-fallback" | "disabled";
+  provider?: "managed" | "byok";
+  sourceMode?: "scan-summary" | "sampled-code";
+  message?: string;
 }
 
 export interface GeneratedTask {

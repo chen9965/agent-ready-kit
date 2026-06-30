@@ -61,6 +61,7 @@ Repository / 仓库: ${renderRepository(scan)}
 Files scanned / 扫描文件: ${scan.fileCount}
 Stack / 技术栈: ${stack}
 Score / 分数: ${scan.score.overall}/100
+LLM mode / 大模型模式: ${llmModeLabel(scan)}
 
 ## Before / 使用前
 
@@ -70,16 +71,16 @@ Without Agent Ready Kit, an AI coding agent usually has to infer:
 - 哪些目录重要、如何安装、应该运行哪些验证命令。
 - Which missing docs, tests, CI, repo map, or safety signals create risk in a large repository.
 - 大仓库里缺少哪些文档、测试、CI、仓库地图或安全信号。
-- What should be fixed first before asking an agent to make broad changes.
-- 在让代理做大改动前，哪些问题应该先处理。
+- Which sampled files and repo signals matter enough to send into an LLM prompt.
+- 哪些采样文件和仓库信号值得放进大模型上下文。
 
 ## After This Scan / 本次扫描后
 
 | Output | What it gives you |
 | --- | --- |
-| \`scan.json\` | Full machine-readable signal, score, finding, and LLM data. |
-| \`report.md\` | GitHub-friendly score summary for README, PR comments, or issues. |
-| \`action-plan.md\` | Prioritized fixes grouped by severity and area. |
+| \`scan.json\` | Full machine-readable signal, score, finding, LLM status, and LLM recommendations. |
+| \`report.md\` | GitHub-friendly LLM-first score summary for README, PR comments, or issues. |
+| \`action-plan.md\` | Prioritized fixes grouped by severity and area, with LLM context when available. |
 | \`before-after.md\` | This before/after explanation for users and maintainers. |
 
 ## After \`agent-ready init --write\` / 写入后
@@ -92,8 +93,9 @@ ${generatedRows}
 
 | Area | Before | After |
 | --- | --- | --- |
-| Onboarding / 上手 | New agents read scattered files and guess the workflow. | Agents start from \`AGENTS.md\` and the generated report. |
-| Large repo scan / 大仓库扫描 | Problems are hidden across thousands of files. | Score, findings, and fix order are exported as stable files. |
+| LLM context / 大模型上下文 | Agents read scattered files and guess the workflow. | The scan sends bounded repo evidence to the LLM and records whether LLM analysis succeeded. |
+| Onboarding / 上手 | New agents guess commands, entrypoints, and boundaries. | Agents start from \`AGENTS.md\`, report, and LLM recommendations. |
+| Large repo scan / 大仓库扫描 | Problems are hidden across thousands of files. | Score, findings, LLM status, and fix order are exported as stable files. |
 | Review / 评审 | Hard to explain why a repo is or is not agent-ready. | \`report.md\` and \`before-after.md\` explain the delta clearly. |
 | Safety / 安全 | Risky commands and possible secrets rely on memory. | Guard rules and findings are explicit and repeatable. |
 `;
@@ -117,6 +119,7 @@ Generated / 生成时间: ${scan.generatedAt}
 - Score / 分数: ${scan.score.overall}/100
 - Files scanned / 扫描文件: ${scan.fileCount}
 - Stack / 技术栈: ${scan.stack.length ? scan.stack.join(", ") : "unknown / 未识别"}
+- LLM mode / 大模型模式: ${llmModeLabel(scan)}
 - Top risk count / 主要风险数: ${scan.findings.length}
 
 ## Priority Fixes / 优先修复
@@ -133,9 +136,9 @@ npx @chent6767/agent-ready-kit report . --open
 
 ## Shareable Pitch / 可直接发布的一句话
 
-Agent Ready Kit scans a repository, scores whether AI coding agents can safely work inside it, then generates the missing onboarding, guardrails, task cards, and reports.
+Agent Ready Kit uses LLM-first analysis with bounded local evidence to prepare a repository for AI coding agents, then generates onboarding, guardrails, task cards, and reports.
 
-Agent Ready Kit 会扫描仓库，判断它是否适合 AI 编码代理安全接手，然后生成缺失的上手说明、守护规则、任务卡和报告。
+Agent Ready Kit 会优先用大模型分析有限的本地仓库证据，帮仓库适配 AI 编码代理，然后生成上手说明、守护规则、任务卡和报告。
 `;
 }
 
@@ -158,4 +161,15 @@ function renderFinding(finding: Finding): string {
 
 function renderRepository(scan: ScanResult): string {
   return scan.target?.sourceUrl ? scan.target.sourceUrl : `\`${scan.root}\``;
+}
+
+function llmModeLabel(scan: ScanResult): string {
+  if (scan.llm) {
+    const provider = scan.llm.provider.managed ? "managed" : "BYOK";
+    const source = scan.llm.sourceMode === "sampled-code" ? "sampled code / 采样代码" : "scan summary / 扫描摘要";
+    return `active / 已启用 (${provider}, ${source})`;
+  }
+  if (scan.llmStatus?.status === "local-fallback") return "local fallback / 本地兜底 (LLM unavailable / 大模型不可用)";
+  if (scan.llmStatus?.status === "disabled") return "disabled / 已关闭 (local-only emergency mode / 纯本地应急模式)";
+  return "not recorded / 未记录";
 }

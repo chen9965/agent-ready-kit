@@ -134,6 +134,13 @@ describe("loadLlmOptions", () => {
     expect(options.timeoutMs).toBe(30000);
     expect(options.managedTimeoutMs).toBe(25000);
   });
+
+  it("defaults to longer LLM timeouts for proxy and managed-model latency", () => {
+    const options = withCleanLlmEnv(() => loadLlmOptions());
+
+    expect(options.timeoutMs).toBe(60000);
+    expect(options.managedTimeoutMs).toBe(60000);
+  });
 });
 
 function withCleanLlmEnv<T>(run: () => T): T {

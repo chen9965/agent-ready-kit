@@ -55,6 +55,7 @@ export function renderHtml(scan: ScanResult): string {
     .finding.warn { border-left: 5px solid #ca8a04; }
     .finding.info { border-left: 5px solid #0891b2; }
     .meta { color: #71717a; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .llm-mode { background: #ecfdf5; border: 1px solid #bbf7d0; color: #14532d; border-radius: 8px; padding: 12px 14px; margin: 18px 0; }
     code { background: #eee7dd; padding: 2px 5px; border-radius: 5px; }
   </style>
 </head>
@@ -65,6 +66,7 @@ export function renderHtml(scan: ScanResult): string {
       <h1>Agent Readiness Report / 代理就绪度报告</h1>
       <p>${scan.target?.sourceUrl ? escapeHtml(scan.target.sourceUrl) : `<code>${escapeHtml(scan.root)}</code>`}</p>
       <p>Generated / 生成时间: ${escapeHtml(scan.generatedAt)}</p>
+      <div class="llm-mode"><b>LLM mode / 大模型模式:</b> ${escapeHtml(llmModeLabel(scan))}</div>
     </header>
     <section class="grid">
       ${metric("Docs / 文档", scan.score.docs)}
@@ -87,6 +89,17 @@ export function renderHtml(scan: ScanResult): string {
 
 function metric(label: string, value: number): string {
   return `<div class="metric">${escapeHtml(label)}<b>${value}</b></div>`;
+}
+
+function llmModeLabel(scan: ScanResult): string {
+  if (scan.llm) {
+    const provider = scan.llm.provider.managed ? "managed" : "BYOK";
+    const source = scan.llm.sourceMode === "sampled-code" ? "sampled code / 采样代码" : "scan summary / 扫描摘要";
+    return `active / 已启用 (${provider}, ${source})`;
+  }
+  if (scan.llmStatus?.status === "local-fallback") return "local fallback / 本地兜底 (LLM unavailable / 大模型不可用)";
+  if (scan.llmStatus?.status === "disabled") return "disabled / 已关闭 (local-only emergency mode / 纯本地应急模式)";
+  return "not recorded / 未记录";
 }
 
 function escapeHtml(value: string): string {
