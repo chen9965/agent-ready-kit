@@ -27,6 +27,18 @@ describe("scanRepository", () => {
     expect(files.some((file) => file.path === "AGENTS.md" && file.content.includes("项目上下文"))).toBe(true);
     expect(files.some((file) => file.path === ".agent-ready/guards.json")).toBe(true);
   });
+
+  it("detects common license filenames", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "agent-ready-license-"));
+    await writeFile(path.join(dir, "README.md"), "# Fixture\n", "utf8");
+    await writeFile(path.join(dir, "LICENSE.txt"), "MIT\n", "utf8");
+
+    const result = await scanRepository(dir);
+    const license = result.signals.find((signal) => signal.name === "License");
+
+    expect(license?.present).toBe(true);
+    expect(license?.evidence).toContain("LICENSE.txt");
+  });
 });
 
 describe("loadConfig", () => {

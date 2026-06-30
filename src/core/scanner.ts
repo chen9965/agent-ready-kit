@@ -40,6 +40,8 @@ const codeExtensions = new Set([
   ".lua"
 ]);
 
+const licenseFilePattern = /(^|\/)(licen[cs]e|copying|notice)(\.(md|txt))?$/i;
+
 export async function scanRepository(targetPath: string): Promise<ScanResult> {
   const root = path.resolve(targetPath);
   const config = await loadConfig(root);
@@ -109,10 +111,11 @@ async function detectSignals(root: string, files: string[]): Promise<RepoSignal[
   const packageJson = await readJson(path.join(root, "package.json"));
   const scripts = packageJson?.scripts as Record<string, unknown> | undefined;
   const repoMap = await detectRepoMapEvidence(root, files);
+  const licenseFiles = files.filter((file) => licenseFilePattern.test(file));
 
   return [
     signal("README", "README 文档", hasAny(files, /^readme\.md$/i), files.filter((file) => /^readme\.md$/i.test(file))),
-    signal("License", "开源许可证", hasAny(files, /^licen[cs]e(\.md)?$/i), files.filter((file) => /^licen[cs]e(\.md)?$/i.test(file))),
+    signal("License", "开源许可证", licenseFiles.length > 0, licenseFiles),
     signal("Tests", "测试文件", hasTests(files, scripts), testEvidence(files, scripts)),
     signal("Package scripts", "包脚本", Boolean(scripts && Object.keys(scripts).length > 0), scripts ? Object.keys(scripts) : []),
     signal("CI workflow", "CI 工作流", files.some((file) => file.startsWith(".github/workflows/")), files.filter((file) => file.startsWith(".github/workflows/"))),

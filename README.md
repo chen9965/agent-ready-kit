@@ -19,6 +19,16 @@ After scanning, it gives you a score and can generate the missing agent-facing f
 
 ![agent-ready-kit terminal demo](docs/demo.svg)
 
+## Real Repository Showcase / 真实仓库示例
+
+Want to see what the tool finds on large real repositories?
+
+想看它跑在真实大仓库上是什么效果？
+
+See [docs/showcase](docs/showcase/README.md) for scans of React, Next.js, TypeScript, and Node.js.
+
+查看 [docs/showcase](docs/showcase/README.md)，里面有 React、Next.js、TypeScript 和 Node.js 的真实扫描结果。
+
 ## What Problem Does It Solve / 解决什么问题
 
 AI coding agents often fail for boring reasons:
