@@ -14,6 +14,7 @@ export function renderMarkdownSummary(scan: ScanResult, options: MarkdownSummary
 
 - **Score / 分数:** ${scan.score.overall}/100
 - **Status / 状态:** ${status} (minimum / 最低要求: ${minScore})
+- **Target / 目标:** ${targetLabel(scan)}
 - **Stack / 技术栈:** ${stack}
 - **Files scanned / 扫描文件:** ${scan.fileCount}
 
@@ -47,6 +48,11 @@ function renderFindings(findings: ScanResult["findings"]): string {
 
 function escapeCell(value: string): string {
   return value.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+}
+
+function targetLabel(scan: ScanResult): string {
+  if (scan.target?.sourceUrl) return scan.target.sourceUrl;
+  return `\`${scan.root}\``;
 }
 
 function renderLlm(scan: ScanResult): string {

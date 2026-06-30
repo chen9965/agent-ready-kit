@@ -63,7 +63,7 @@ export function renderHtml(scan: ScanResult): string {
     <header>
       <div class="score">${scan.score.overall}<span>/100</span></div>
       <h1>Agent Readiness Report / 代理就绪度报告</h1>
-      <p><code>${escapeHtml(scan.root)}</code></p>
+      <p>${scan.target?.sourceUrl ? escapeHtml(scan.target.sourceUrl) : `<code>${escapeHtml(scan.root)}</code>`}</p>
       <p>Generated / 生成时间: ${escapeHtml(scan.generatedAt)}</p>
     </header>
     <section class="grid">

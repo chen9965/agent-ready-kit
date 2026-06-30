@@ -5,6 +5,7 @@ export function renderScanSummary(scan: ScanResult): string {
   const stack = scan.stack.length ? scan.stack.join(", ") : "unknown / 未识别";
   const lines = [
     `${pc.bold("Agent readiness / 代理就绪度")}: ${scoreColor(scan.score.overall)} ${scan.score.overall}/100`,
+    ...(scan.target?.sourceUrl ? [`${pc.bold("Target / 目标")}: ${scan.target.sourceUrl}`] : []),
     `${pc.bold("Root / 根目录")}: ${scan.root}`,
     `${pc.bold("Stack / 技术栈")}: ${stack}`,
     `${pc.bold("Package manager / 包管理器")}: ${scan.packageManager ?? "not detected / 未检测到"}`,

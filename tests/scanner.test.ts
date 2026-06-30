@@ -8,6 +8,7 @@ import { loadConfig } from "../src/core/config.js";
 import { generateFiles } from "../src/core/generator.js";
 import { loadLlmOptions } from "../src/core/llm.js";
 import { scanRepository } from "../src/core/scanner.js";
+import { parseGitHubRepository } from "../src/core/target.js";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -77,17 +78,64 @@ describe("loadConfig", () => {
 });
 
 describe("loadLlmOptions", () => {
+  it("uses a free OpenRouter model by default", () => {
+    const options = withCleanLlmEnv(() => loadLlmOptions({ apiKey: "test-key" }));
+
+    expect(options.baseUrl).toBe("https://openrouter.ai/api/v1");
+    expect(options.model).toBe("openrouter/free");
+  });
+
+  it("supports provider presets for simpler setup", () => {
+    const options = withCleanLlmEnv(() => loadLlmOptions({ apiKey: "test-key", provider: "siliconflow" }));
+
+    expect(options.baseUrl).toBe("https://api.siliconflow.cn/v1");
+    expect(options.model).toBe("Qwen/Qwen3-8B");
+  });
+
   it("preserves code-context options", () => {
-    const options = loadLlmOptions({
-      apiKey: "test-key",
-      model: "test-model",
-      includeCodeContext: true,
-      codeMaxFiles: 5,
-      codeMaxChars: 6000
-    });
+    const options = withCleanLlmEnv(() =>
+      loadLlmOptions({
+        apiKey: "test-key",
+        model: "test-model",
+        includeCodeContext: true,
+        codeMaxFiles: 5,
+        codeMaxChars: 6000
+      })
+    );
 
     expect(options.includeCodeContext).toBe(true);
     expect(options.codeMaxFiles).toBe(5);
     expect(options.codeMaxChars).toBe(6000);
+  });
+});
+
+function withCleanLlmEnv<T>(run: () => T): T {
+  const keys = ["AGENT_READY_LLM_API_KEY", "AGENT_READY_LLM_PROVIDER", "AGENT_READY_LLM_BASE_URL", "AGENT_READY_LLM_MODEL"];
+  const previous = new Map(keys.map((key) => [key, process.env[key]]));
+  for (const key of keys) delete process.env[key];
+  try {
+    return run();
+  } finally {
+    for (const [key, value] of previous) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+}
+
+describe("parseGitHubRepository", () => {
+  it("accepts GitHub URLs and owner/repo shorthand", () => {
+    expect(parseGitHubRepository("https://github.com/chen9965/agent-ready-kit")).toEqual({
+      owner: "chen9965",
+      repo: "agent-ready-kit"
+    });
+    expect(parseGitHubRepository("github.com/chen9965/agent-ready-kit.git")).toEqual({
+      owner: "chen9965",
+      repo: "agent-ready-kit"
+    });
+    expect(parseGitHubRepository("chen9965/agent-ready-kit")).toEqual({
+      owner: "chen9965",
+      repo: "agent-ready-kit"
+    });
   });
 });

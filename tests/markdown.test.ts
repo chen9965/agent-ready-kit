@@ -26,6 +26,6 @@ describe("renderMarkdownSummary", () => {
     expect(beforeAfter).toContain("# Before / After Agent Ready Kit");
     expect(beforeAfter).toContain("After This Scan / 本次扫描后");
     expect(actionPlan).toContain("# Agent Ready Action Plan / 代理就绪行动计划");
-    expect(actionPlan).toContain("npx @chent6767/agent-ready-kit scan . --out .agent-ready");
+    expect(actionPlan).toContain("npx @chent6767/agent-ready-kit . --out .agent-ready");
   });
 });

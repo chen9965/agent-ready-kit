@@ -41,6 +41,7 @@ export interface ReadinessScore {
 
 export interface ScanResult {
   root: string;
+  target?: ScanTargetMetadata;
   generatedAt: string;
   stack: string[];
   packageManager: string | null;
@@ -50,6 +51,13 @@ export interface ScanResult {
   fileCount: number;
   ignoredCount: number;
   llm?: LlmInsight;
+}
+
+export interface ScanTargetMetadata {
+  input: string;
+  kind: "local" | "github-url";
+  sourceUrl?: string;
+  name?: string;
 }
 
 export interface LlmInsight {

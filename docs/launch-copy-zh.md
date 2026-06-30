@@ -5,10 +5,11 @@
 当前真实状态：
 
 - GitHub 仓库：https://github.com/chen9965/agent-ready-kit
-- 可用方式：`npx @chent6767/agent-ready-kit scan .`
-- 生成展示产物：`npx @chent6767/agent-ready-kit scan . --out .agent-ready`
-- GitHub 源码方式：`npx github:chen9965/agent-ready-kit scan .`
-- 核心卖点：它不是 AI 套壳，而是给仓库做一次“AI 编码代理上岗体检”。默认不需要 API Key，不上传源码；可选接入 OpenAI 兼容大模型。`--llm` 只发送扫描摘要，`--llm-code` 会发送有限采样代码上下文，适合文档很少、主要靠代码表达结构的仓库。
+- 可用方式：`npx @chent6767/agent-ready-kit .`
+- 生成展示产物：`npx @chent6767/agent-ready-kit . --out .agent-ready`
+- 直接扫 GitHub 仓库：`npx @chent6767/agent-ready-kit https://github.com/owner/repo --out .agent-ready`
+- GitHub 源码方式：`npx github:chen9965/agent-ready-kit .`
+- 核心卖点：它不是 AI 套壳，而是给仓库做一次“AI 编码代理上岗体检”。没有 API Key 时会本地静态扫描；配置 `AGENT_READY_LLM_API_KEY` 后会默认接入 OpenAI 兼容大模型，并发送有限采样代码上下文，适合文档很少、主要靠代码表达结构的仓库。
 
 视频配乐署名：
 
@@ -20,7 +21,7 @@
 
 我做了一个小工具，帮仓库把 AI 编码代理最需要的规则讲清楚：怎么安装、怎么测试、哪些目录别碰、改完怎么验证。
 
-它会给仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 CI 门禁。现在 `scan --out` 还会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`，适合大仓库展示“使用前后到底差在哪”。如果仓库几乎只有代码，可以用 `--llm-code` 让模型读取采样代码片段，推断入口、测试和上手说明。
+它会给仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 CI 门禁。现在 `--out` 会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`，适合大仓库展示“使用前后到底差在哪”。如果配置了模型 key，它会默认读取有限采样代码片段，推断入口、测试和上手说明。
 
 更短版本：
 
@@ -55,15 +56,15 @@ Topics 建议：
 - 这不是又一个模型调用工具。
 - 它扫描的是仓库给 Agent 的协作信号。
 - 它输出的是 Agent 能直接使用的说明、任务和门禁。
-- 默认本地运行，不上传源码；需要时可显式开启 `--llm-code` 采样代码分析。
+- 无 key 时本地运行；有 key 时默认接入大模型，并可用 `--no-llm` 或 `--llm-summary` 控制隐私。
 
 可复制版本：
 
-`agent-ready-kit` helps repositories work better with AI coding agents. It scans setup commands, tests, CI, repo maps, safety boundaries, and `AGENTS.md`, then returns an Agent Ready Score and can generate the missing agent-facing files. For code-only repos, `--llm-code` adds sampled-code recommendations through any OpenAI-compatible model.
+`agent-ready-kit` helps repositories work better with AI coding agents. It scans setup commands, tests, CI, repo maps, safety boundaries, and `AGENTS.md`, then returns an Agent Ready Score and can generate the missing agent-facing files. With an API key, sampled-code LLM recommendations are enabled by default through any OpenAI-compatible model.
 
 中文版本：
 
-`agent-ready-kit` 帮仓库更好地配合 AI 编码代理。它会扫描安装命令、测试、CI、仓库地图、安全边界和 `AGENTS.md`，然后给出 Agent Ready Score，并生成缺失的 Agent 可读文件。对于纯代码仓库，`--llm-code` 可以通过任意 OpenAI 兼容模型生成基于采样代码的建议。
+`agent-ready-kit` 帮仓库更好地配合 AI 编码代理。它会扫描安装命令、测试、CI、仓库地图、安全边界和 `AGENTS.md`，然后给出 Agent Ready Score，并生成缺失的 Agent 可读文件。配置 API key 后，它会默认通过任意 OpenAI 兼容模型生成基于采样代码的建议。
 
 ## V2EX
 
@@ -100,12 +101,12 @@ Topics 建议：
 使用方式：
 
 ```bash
-npx @chent6767/agent-ready-kit scan .
-npx @chent6767/agent-ready-kit scan . --out .agent-ready
+npx @chent6767/agent-ready-kit .
+npx @chent6767/agent-ready-kit . --out .agent-ready
 npx @chent6767/agent-ready-kit init . --write
 ```
 
-它默认不需要 API Key，只做本地静态分析。你也可以用 `--llm` 接入 OpenAI 兼容接口，让免费额度、自建模型或第三方模型基于扫描摘要生成更像 reviewer 的建议。跑大仓库时推荐加 `--out .agent-ready`，这样会直接生成前后对比和行动计划。
+它没有 API Key 也能做本地静态分析。只要配置 `AGENT_READY_LLM_API_KEY`，就会默认接入大模型，用采样代码上下文生成更像 reviewer 的建议。跑大仓库时推荐加 `--out .agent-ready`，这样会直接生成前后对比和行动计划。
 
 仓库地址：
 
@@ -165,8 +166,8 @@ https://github.com/chen9965/agent-ready-kit
 快速试用：
 
 ```bash
-npx @chent6767/agent-ready-kit scan .
-npx @chent6767/agent-ready-kit scan . --out .agent-ready
+npx @chent6767/agent-ready-kit .
+npx @chent6767/agent-ready-kit . --out .agent-ready
 npx @chent6767/agent-ready-kit init . --write
 ```
 
@@ -202,13 +203,13 @@ AI 编码代理时代，仓库也需要一份“上岗说明书”
 
 它会给仓库做一次静态扫描，生成一个 AI Agent readiness score，并输出 `scan.json`、`before-after.md`、`action-plan.md`、`AGENTS.md`、任务卡、报告和机器可读 guard rules。它也可以作为 GitHub Action 放进 CI，在 PR 里检查仓库是否低于最低就绪度分数。
 
-它默认不需要 API Key，也不上传源码。需要更自然的建议时，可以选择接入 OpenAI 兼容大模型。
+它没有 API Key 也可以本地扫描。配置 API Key 后会默认接入 OpenAI 兼容大模型，读取有限采样代码上下文；如果不想上传代码，可以加 `--no-llm` 或 `--llm-summary`。
 
 试用：
 
 ```bash
-npx @chent6767/agent-ready-kit scan .
-npx @chent6767/agent-ready-kit scan . --out .agent-ready
+npx @chent6767/agent-ready-kit .
+npx @chent6767/agent-ready-kit . --out .agent-ready
 npx @chent6767/agent-ready-kit init . --write
 ```
 
@@ -226,13 +227,13 @@ https://github.com/chen9965/agent-ready-kit
 
 它可以检查一个仓库有没有讲清 AI 编码代理最需要的信息：安装命令、测试命令、CI、目录结构、安全边界和 `AGENTS.md`。
 
-跑完以后会得到 AI Agent 就绪度分数，并生成前后对比、行动计划、`AGENTS.md`、任务卡、guard rules、报告和 GitHub Action 门禁。现在也支持可选大模型增强建议。
+跑完以后会得到 AI Agent 就绪度分数，并生成前后对比、行动计划、`AGENTS.md`、任务卡、guard rules、报告和 GitHub Action 门禁。配置模型 key 后会默认开启采样代码大模型增强建议。
 
-适合正在用 Codex、Claude Code、Cursor、Copilot coding agent 的人。它默认不需要 API Key；如果你有免费模型额度、自建模型或第三方兼容接口，也可以打开 `--llm` 做增强建议。
+适合正在用 Codex、Claude Code、Cursor、Copilot coding agent 的人。没有 API Key 也能本地跑；如果你有免费模型额度、自建模型或第三方兼容接口，设置一个环境变量就能增强建议。
 
 ```bash
-npx @chent6767/agent-ready-kit scan .
-npx @chent6767/agent-ready-kit scan . --out .agent-ready
+npx @chent6767/agent-ready-kit .
+npx @chent6767/agent-ready-kit . --out .agent-ready
 ```
 
 GitHub：
@@ -252,8 +253,8 @@ https://github.com/chen9965/agent-ready-kit
 可以直接跑：
 
 ```bash
-npx @chent6767/agent-ready-kit scan .
-npx @chent6767/agent-ready-kit scan . --out .agent-ready
+npx @chent6767/agent-ready-kit .
+npx @chent6767/agent-ready-kit . --out .agent-ready
 ```
 
 项目地址：
@@ -272,21 +273,21 @@ https://github.com/chen9965/agent-ready-kit
 
 我做了一个开源工具，叫 `agent-ready-kit`。它会扫描你的仓库，检查 README、测试脚本、CI、仓库地图、安全边界和 `AGENTS.md` 这些 Agent 协作信号。
 
-跑完以后，它会给出一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules 和报告。对于大仓库，还可以用 `scan --out` 生成 `scan.json`、`before-after.md` 和 `action-plan.md`，直接看出使用前只能靠猜、使用后有哪些明确产物。默认不需要 API Key；如果你有免费模型额度，也可以开启大模型增强建议。
+跑完以后，它会给出一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules 和报告。对于大仓库，还可以用 `--out` 生成 `scan.json`、`before-after.md` 和 `action-plan.md`，直接看出使用前只能靠猜、使用后有哪些明确产物。没有 API Key 也能本地扫描；配置 key 后会默认开启采样代码大模型增强建议。
 
 演示：
 
 第一条命令扫描当前仓库：
 
 ```bash
-npx @chent6767/agent-ready-kit scan .
-npx @chent6767/agent-ready-kit scan . --out .agent-ready
+npx @chent6767/agent-ready-kit .
+npx @chent6767/agent-ready-kit . --out .agent-ready
 ```
 
 如果是大仓库，可以加上：
 
 ```bash
-npx @chent6767/agent-ready-kit scan . --out .agent-ready
+npx @chent6767/agent-ready-kit . --out .agent-ready
 ```
 
 这会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`，直接告诉你使用前 Agent 在猜什么、使用后仓库多了哪些明确材料。
@@ -331,20 +332,20 @@ I think it may be useful for projects that want Codex, Claude Code, Cursor, or C
 
 有人问“会不会上传代码”：
 
-默认不会。它只在本地做静态扫描；只有你主动开启 `--llm` 并配置模型接口时，才会发送评分、信号和 findings 摘要，不上传源码文件。
+没有配置 API Key 时不会上传代码，只做本地静态扫描。配置 `AGENT_READY_LLM_API_KEY` 后会默认发送有限采样代码上下文；不想上传代码时加 `--no-llm`，只想发摘要时加 `--llm-summary`。
 
 有人问“国内能不能用”：
 
 当前可以直接通过 npm 使用：
 
 ```bash
-npx @chent6767/agent-ready-kit scan .
+npx @chent6767/agent-ready-kit .
 ```
 
 如果 npm 网络不稳定，也可以从 GitHub 源码运行：
 
 ```bash
-npx github:chen9965/agent-ready-kit scan .
+npx github:chen9965/agent-ready-kit .
 ```
 
 有人问“为什么需要这个”：

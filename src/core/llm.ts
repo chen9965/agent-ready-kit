@@ -3,6 +3,7 @@ import { buildRepositoryCodeContext, type RepositoryCodeContext } from "./code-c
 
 export interface LlmOptions {
   apiKey?: string;
+  provider?: string;
   baseUrl?: string;
   model?: string;
   timeoutMs?: number;
@@ -29,13 +30,18 @@ interface ChatCompletionResponse {
 }
 
 const defaultBaseUrl = "https://openrouter.ai/api/v1";
+const defaultModel = "openrouter/free";
 const defaultTimeoutMs = 20_000;
 
 export function loadLlmOptions(overrides: LlmOptions = {}): LlmOptions {
+  const provider = overrides.provider ?? process.env.AGENT_READY_LLM_PROVIDER;
+  const providerDefaults = resolveProviderDefaults(provider, overrides.baseUrl ?? process.env.AGENT_READY_LLM_BASE_URL);
+
   return {
     apiKey: overrides.apiKey ?? process.env.AGENT_READY_LLM_API_KEY,
-    baseUrl: overrides.baseUrl ?? process.env.AGENT_READY_LLM_BASE_URL ?? defaultBaseUrl,
-    model: overrides.model ?? process.env.AGENT_READY_LLM_MODEL,
+    provider,
+    baseUrl: overrides.baseUrl ?? process.env.AGENT_READY_LLM_BASE_URL ?? providerDefaults.baseUrl,
+    model: overrides.model ?? process.env.AGENT_READY_LLM_MODEL ?? providerDefaults.model,
     timeoutMs: overrides.timeoutMs ?? defaultTimeoutMs,
     includeCodeContext: overrides.includeCodeContext,
     codeMaxFiles: overrides.codeMaxFiles,
@@ -49,14 +55,8 @@ export async function enhanceScanWithLlm(scan: ScanResult, options: LlmOptions =
     return {
       scan,
       status: "skipped",
-      message: "LLM skipped: set AGENT_READY_LLM_API_KEY to enable model-enhanced recommendations."
-    };
-  }
-  if (!config.model) {
-    return {
-      scan,
-      status: "skipped",
-      message: "LLM skipped: set AGENT_READY_LLM_MODEL to the provider model name."
+      message:
+        "LLM skipped: set AGENT_READY_LLM_API_KEY to enable default model-enhanced recommendations. / 已跳过大模型：设置 AGENT_READY_LLM_API_KEY 后会默认启用。"
     };
   }
 
@@ -71,34 +71,19 @@ export async function enhanceScanWithLlm(scan: ScanResult, options: LlmOptions =
   const timeout = setTimeout(() => controller.abort(), config.timeoutMs ?? defaultTimeoutMs);
 
   try {
-    const response = await fetch(`${baseUrl}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${config.apiKey}`,
-        "http-referer": "https://github.com/chen9965/agent-ready-kit",
-        "x-title": "agent-ready-kit"
-      },
-      body: JSON.stringify({
-        model: config.model,
-        temperature: 0.2,
-        messages: [
-          {
-            role: "system",
-            content:
-              "You turn repository readiness scan results into concise bilingual recommendations. If sampled code context is supplied, use it only as partial evidence and say so implicitly through cautious recommendations. Do not claim you reviewed the entire source tree. Return JSON only."
-          },
-          {
-            role: "user",
-            content: JSON.stringify(buildPromptPayload(scan, codeContext))
-          }
-        ]
-      }),
-      signal: controller.signal
-    });
-
-    const body = (await response.json()) as ChatCompletionResponse;
-    if (!response.ok) {
+    const response = await requestChatCompletion(baseUrl, config, scan, codeContext, controller, true);
+    let body = await readChatCompletionResponse(response);
+    if (!response.ok && shouldRetryWithoutJsonMode(body.error?.message)) {
+      const retry = await requestChatCompletion(baseUrl, config, scan, codeContext, controller, false);
+      body = await readChatCompletionResponse(retry);
+      if (!retry.ok) {
+        return {
+          scan,
+          status: "error",
+          message: body.error?.message ?? `LLM request failed with HTTP ${retry.status}.`
+        };
+      }
+    } else if (!response.ok) {
       return {
         scan,
         status: "error",
@@ -111,13 +96,57 @@ export async function enhanceScanWithLlm(scan: ScanResult, options: LlmOptions =
       return { scan, status: "error", message: "LLM response did not include message content." };
     }
 
-    const insight = parseInsight(content, baseUrl, config.model, codeContext);
+    const insight = parseInsight(content, baseUrl, config.model ?? defaultModel, codeContext);
     return { scan: { ...scan, llm: insight }, status: "ok" };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return { scan, status: "error", message: `LLM request failed: ${message}` };
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+async function requestChatCompletion(
+  baseUrl: string,
+  config: LlmOptions,
+  scan: ScanResult,
+  codeContext: RepositoryCodeContext | undefined,
+  controller: AbortController,
+  jsonMode: boolean
+): Promise<Response> {
+  return fetch(`${baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${config.apiKey}`,
+        "http-referer": "https://github.com/chen9965/agent-ready-kit",
+        "x-title": "agent-ready-kit"
+      },
+      body: JSON.stringify({
+        model: config.model ?? defaultModel,
+        temperature: 0.2,
+        ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
+        messages: [
+          {
+            role: "system",
+            content:
+              "You turn repository readiness scan results into concise bilingual recommendations. If sampled code context is supplied, use it only as partial evidence and say so implicitly through cautious recommendations. Do not claim you reviewed the entire source tree. Return a valid JSON object only."
+          },
+          {
+            role: "user",
+            content: JSON.stringify(buildPromptPayload(scan, codeContext))
+          }
+        ]
+      }),
+      signal: controller.signal
+    });
+}
+
+async function readChatCompletionResponse(response: Response): Promise<ChatCompletionResponse> {
+  try {
+    return (await response.json()) as ChatCompletionResponse;
+  } catch {
+    return { error: { message: `LLM response was not JSON (HTTP ${response.status}).` } };
   }
 }
 
@@ -183,10 +212,36 @@ function normalizeBaseUrl(value: string): string {
   return value.replace(/\/+$/, "");
 }
 
+function resolveProviderDefaults(provider?: string, baseUrl?: string): Required<Pick<LlmOptions, "baseUrl" | "model">> {
+  const normalizedProvider = provider?.toLowerCase().trim();
+  const normalizedBaseUrl = baseUrl?.toLowerCase();
+  if (normalizedProvider === "siliconflow" || normalizedBaseUrl?.includes("siliconflow")) {
+    return { baseUrl: "https://api.siliconflow.cn/v1", model: "Qwen/Qwen3-8B" };
+  }
+  if (normalizedProvider === "gemini" || normalizedBaseUrl?.includes("generativelanguage.googleapis.com")) {
+    return { baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-3.5-flash" };
+  }
+  if (normalizedProvider === "groq" || normalizedBaseUrl?.includes("api.groq.com")) {
+    return { baseUrl: "https://api.groq.com/openai/v1", model: "llama-3.3-70b-versatile" };
+  }
+  return { baseUrl: defaultBaseUrl, model: defaultModel };
+}
+
+function shouldRetryWithoutJsonMode(message?: string): boolean {
+  if (!message) return false;
+  return /response_format|json_object|structured output|unsupported/i.test(message);
+}
+
 function stripJsonFence(value: string): string {
   const trimmed = value.trim();
-  if (!trimmed.startsWith("```")) return trimmed;
-  return trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  const withoutFence = trimmed.startsWith("```")
+    ? trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim()
+    : trimmed;
+  if (withoutFence.startsWith("{")) return withoutFence;
+  const firstBrace = withoutFence.indexOf("{");
+  const lastBrace = withoutFence.lastIndexOf("}");
+  if (firstBrace >= 0 && lastBrace > firstBrace) return withoutFence.slice(firstBrace, lastBrace + 1);
+  return withoutFence;
 }
 
 function cleanText(value: unknown, fallback: string): string {

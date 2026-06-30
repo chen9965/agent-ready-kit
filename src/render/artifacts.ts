@@ -56,7 +56,7 @@ export function renderBeforeAfter(scan: ScanResult): string {
 
   return `# Before / After Agent Ready Kit
 
-Repository / 仓库: \`${scan.root}\`
+Repository / 仓库: ${renderRepository(scan)}
 
 Files scanned / 扫描文件: ${scan.fileCount}
 Stack / 技术栈: ${stack}
@@ -109,7 +109,7 @@ export function renderActionPlan(scan: ScanResult): string {
 
   return `# Agent Ready Action Plan / 代理就绪行动计划
 
-Repository / 仓库: \`${scan.root}\`
+Repository / 仓库: ${renderRepository(scan)}
 Generated / 生成时间: ${scan.generatedAt}
 
 ## Summary / 摘要
@@ -126,7 +126,7 @@ ${grouped.map(([title, items]) => renderFindingGroup(title, items)).join("\n\n")
 ## Recommended Commands / 推荐命令
 
 \`\`\`bash
-npx @chent6767/agent-ready-kit scan . --out .agent-ready
+npx @chent6767/agent-ready-kit . --out .agent-ready
 npx @chent6767/agent-ready-kit init . --write
 npx @chent6767/agent-ready-kit report . --open
 \`\`\`
@@ -154,4 +154,8 @@ function renderFinding(finding: Finding): string {
   - Problem / 问题: ${finding.message}
   - Fix / 修复: ${finding.fix}
   - 修复建议: ${finding.fixZh}`;
+}
+
+function renderRepository(scan: ScanResult): string {
+  return scan.target?.sourceUrl ? scan.target.sourceUrl : `\`${scan.root}\``;
 }
