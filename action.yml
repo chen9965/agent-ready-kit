@@ -1,5 +1,5 @@
 name: Agent Ready Kit
-description: Score a repository for AI-agent readiness and fail CI below a minimum score.
+description: Score repository readiness for AI coding agents and fail CI below a minimum score.
 author: agent-ready-kit contributors
 
 branding:

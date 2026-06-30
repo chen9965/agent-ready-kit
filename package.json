@@ -1,7 +1,7 @@
 {
   "name": "@chent6767/agent-ready-kit",
   "version": "0.3.0",
-  "description": "Make any repository AI-agent-ready in 60 seconds.",
+  "description": "Local CLI and GitHub Action that scores repo readiness for AI coding agents and generates AGENTS.md, task cards, guard rules, and reports.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

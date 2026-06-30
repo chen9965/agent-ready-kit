@@ -7,21 +7,58 @@
 - GitHub 仓库：https://github.com/chen9965/agent-ready-kit
 - 可用方式：`npx @chent6767/agent-ready-kit scan .`
 - GitHub 源码方式：`npx github:chen9965/agent-ready-kit scan .`
-- 核心卖点：默认不需要 API Key，不上传源码；可选接入 OpenAI 兼容大模型，把静态扫描结果润色成更像 reviewer 的建议。
+- 核心卖点：它不是 AI 套壳，而是给仓库做一次“AI 编码代理上岗体检”。默认不需要 API Key，不上传源码；可选接入 OpenAI 兼容大模型，把静态扫描结果润色成更像 reviewer 的建议。
 
 ## 核心定位
 
 一句话：
 
-我做了一个小工具，60 秒给任意仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡和 CI 门禁。
+我做了一个小工具，帮仓库把 AI 编码代理最需要的规则讲清楚：怎么安装、怎么测试、哪些目录别碰、改完怎么验证。
+
+它会给仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 CI 门禁。
 
 更短版本：
 
 让仓库先学会和 AI 编码代理协作。
 
+最短解释：
+
+给 Codex、Claude Code、Cursor、Copilot coding agent 用的仓库体检和上岗说明书生成器。
+
 英文副标题：
 
-Make any repository AI-agent-ready in 60 seconds.
+Make a repository easier for AI coding agents to understand, edit, and verify.
+
+## GitHub About / 仓库描述
+
+短描述：
+
+Local CLI and GitHub Action that scores repo readiness for AI coding agents and generates AGENTS.md, task cards, guard rules, and reports.
+
+中文解释：
+
+本地 CLI + GitHub Action，检查仓库是否适合 AI 编码代理接手，并生成 `AGENTS.md`、任务卡、guard rules 和报告。
+
+Topics 建议：
+
+`ai-agents`, `coding-agents`, `agents-md`, `codex`, `claude-code`, `cursor`, `copilot`, `developer-tools`, `github-action`, `repo-audit`
+
+## GitHub README 首屏短文案
+
+打开仓库前 10 秒要让人明白：
+
+- 这不是又一个模型调用工具。
+- 它扫描的是仓库给 Agent 的协作信号。
+- 它输出的是 Agent 能直接使用的说明、任务和门禁。
+- 默认本地运行，不上传源码。
+
+可复制版本：
+
+`agent-ready-kit` helps repositories work better with AI coding agents. It scans setup commands, tests, CI, repo maps, safety boundaries, and `AGENTS.md`, then returns an Agent Ready Score and can generate the missing agent-facing files.
+
+中文版本：
+
+`agent-ready-kit` 帮仓库更好地配合 AI 编码代理。它会扫描安装命令、测试、CI、仓库地图、安全边界和 `AGENTS.md`，然后给出 Agent Ready Score，并生成缺失的 Agent 可读文件。
 
 ## V2EX
 
@@ -43,6 +80,8 @@ Make any repository AI-agent-ready in 60 seconds.
 - 新贡献者或 Agent 应该先看哪些文件
 
 所以我做了一个小工具：`agent-ready-kit`。
+
+它不是让 AI 再写一遍 README，而是检查仓库有没有把 Agent 真正需要的上下文交代清楚。
 
 它会扫描一个仓库，然后输出：
 
@@ -106,7 +145,7 @@ https://github.com/chen9965/agent-ready-kit
 - 是否有仓库地图
 - 是否有明显安全风险
 
-然后生成：
+然后生成一套 Agent 能直接使用的协作资产：
 
 - 双语就绪度评分
 - `AGENTS.md`
@@ -176,7 +215,9 @@ https://github.com/chen9965/agent-ready-kit
 
 我开源了一个小工具：`agent-ready-kit`。
 
-它可以给任意仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 GitHub Action 门禁。现在也支持可选大模型增强建议。
+它可以检查一个仓库有没有讲清 AI 编码代理最需要的信息：安装命令、测试命令、CI、目录结构、安全边界和 `AGENTS.md`。
+
+跑完以后会得到 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 GitHub Action 门禁。现在也支持可选大模型增强建议。
 
 适合正在用 Codex、Claude Code、Cursor、Copilot coding agent 的人。它默认不需要 API Key；如果你有免费模型额度、自建模型或第三方兼容接口，也可以打开 `--llm` 做增强建议。
 
@@ -192,7 +233,9 @@ https://github.com/chen9965/agent-ready-kit
 
 微信群更口语版：
 
-我刚开源了个和 AI 编码代理相关的小工具，叫 `agent-ready-kit`。它不是 AI 套壳，而是帮仓库补齐给 Agent 看的说明：评分、`AGENTS.md`、任务卡、CI 门禁这些。
+我刚开源了个和 AI 编码代理相关的小工具，叫 `agent-ready-kit`。它不是 AI 套壳，而是帮仓库补齐给 Agent 看的说明：怎么安装、怎么测试、哪些目录别碰、改完怎么验证。
+
+跑完会生成评分、`AGENTS.md`、任务卡、guard rules、报告和 CI 门禁。
 
 现在用 Codex、Claude Code、Cursor 的人应该会有感：仓库上下文写得好不好，直接影响 Agent 会不会乱改。
 
@@ -216,7 +259,9 @@ https://github.com/chen9965/agent-ready-kit
 
 中段：
 
-我做了一个开源工具，叫 `agent-ready-kit`。它会扫描你的仓库，给出一个 AI Agent 就绪度分数，然后生成 `AGENTS.md`、任务卡、guard rules 和报告。默认不需要 API Key；如果你有免费模型额度，也可以开启大模型增强建议。
+我做了一个开源工具，叫 `agent-ready-kit`。它会扫描你的仓库，检查 README、测试脚本、CI、仓库地图、安全边界和 `AGENTS.md` 这些 Agent 协作信号。
+
+跑完以后，它会给出一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules 和报告。默认不需要 API Key；如果你有免费模型额度，也可以开启大模型增强建议。
 
 演示：
 
@@ -240,7 +285,9 @@ npx @chent6767/agent-ready-kit init . --write
 
 适合给 AI 工具链项目发 issue：
 
-Hi, I built a small open-source tool that scores repositories for AI-agent readiness and generates `AGENTS.md`, task cards, guard rules, and a GitHub Action gate.
+Hi, I built a small open-source tool that checks whether a repository gives AI coding agents enough context to work safely: setup commands, tests, CI, repo maps, safety boundaries, and `AGENTS.md`.
+
+It returns an Agent Ready Score and can generate `AGENTS.md`, task cards, guard rules, reports, and a GitHub Action gate.
 
 Repo: https://github.com/chen9965/agent-ready-kit
 
@@ -248,7 +295,9 @@ I think it may be useful for projects that want Codex, Claude Code, Cursor, or C
 
 中文版本：
 
-你好，我做了一个开源小工具 `agent-ready-kit`，可以给仓库生成 AI Agent 就绪度评分、`AGENTS.md`、任务卡、guard rules 和 GitHub Action 门禁。
+你好，我做了一个开源小工具 `agent-ready-kit`，用来检查仓库有没有把 AI 编码代理需要的上下文讲清楚：安装命令、测试、CI、仓库地图、安全边界和 `AGENTS.md`。
+
+它可以生成 AI Agent 就绪度评分、`AGENTS.md`、任务卡、guard rules、报告和 GitHub Action 门禁。
 
 仓库：https://github.com/chen9965/agent-ready-kit
 
