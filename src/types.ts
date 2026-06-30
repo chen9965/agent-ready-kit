@@ -49,6 +49,19 @@ export interface ScanResult {
   score: ReadinessScore;
   fileCount: number;
   ignoredCount: number;
+  llm?: LlmInsight;
+}
+
+export interface LlmInsight {
+  provider: {
+    baseUrl: string;
+    model: string;
+  };
+  summary: string;
+  summaryZh: string;
+  priorityFixes: string[];
+  priorityFixesZh: string[];
+  suggestedIssueTitles: string[];
 }
 
 export interface GeneratedTask {

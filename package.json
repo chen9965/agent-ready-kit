@@ -1,6 +1,6 @@
 {
   "name": "@chent6767/agent-ready-kit",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Make any repository AI-agent-ready in 60 seconds.",
   "type": "module",
   "main": "./dist/index.js",

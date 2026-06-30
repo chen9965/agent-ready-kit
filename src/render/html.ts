@@ -79,6 +79,7 @@ export function renderHtml(scan: ScanResult): string {
     <ul>${signals}</ul>
     <h2>Findings / 发现</h2>
     ${findings || "<p>No findings / 暂无发现</p>"}
+    ${scan.llm ? renderLlm(scan) : ""}
   </main>
 </body>
 </html>`;
@@ -94,4 +95,23 @@ function escapeHtml(value: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function renderLlm(scan: ScanResult): string {
+  const llm = scan.llm;
+  if (!llm) return "";
+
+  const fixes = (llm.priorityFixesZh.length ? llm.priorityFixesZh : llm.priorityFixes)
+    .map((fix) => `<li>${escapeHtml(fix)}</li>`)
+    .join("");
+  const issues = llm.suggestedIssueTitles.map((title) => `<li>${escapeHtml(title)}</li>`).join("");
+
+  return `<section class="finding info">
+    <div class="meta">LLM · ${escapeHtml(llm.provider.model)}</div>
+    <h2>LLM Recommendations <span>大模型增强建议</span></h2>
+    <p>${escapeHtml(llm.summary)}</p>
+    <p>${escapeHtml(llm.summaryZh)}</p>
+    ${fixes ? `<strong>Priority Fixes / 优先修复</strong><ul>${fixes}</ul>` : ""}
+    ${issues ? `<strong>Suggested Issues / 建议 Issue</strong><ul>${issues}</ul>` : ""}
+  </section>`;
 }

@@ -1,4 +1,6 @@
 import { Command } from "commander";
+import pc from "picocolors";
+import { enhanceScanWithLlm } from "../core/llm.js";
 import { scanRepository } from "../core/scanner.js";
 import { renderMarkdownSummary } from "../render/markdown.js";
 import { renderScanSummary } from "../render/text.js";
@@ -10,12 +12,25 @@ export function scanCommand(): Command {
     .option("--json", "print JSON / 输出 JSON")
     .option("--markdown", "print GitHub-flavored Markdown / 输出 Markdown")
     .option("--fail-under <score>", "exit with code 1 below this score / 低于该分数时返回失败")
-    .action(async (targetPath: string, options: { json?: boolean; markdown?: boolean; failUnder?: string }) => {
+    .option("--llm", "add optional model-enhanced recommendations / 添加可选大模型增强建议")
+    .option("--llm-base-url <url>", "OpenAI-compatible API base URL / OpenAI 兼容接口地址")
+    .option("--llm-model <model>", "provider model name / 服务商模型名称")
+    .action(async (targetPath: string, options: { json?: boolean; markdown?: boolean; failUnder?: string; llm?: boolean; llmBaseUrl?: string; llmModel?: string }) => {
       if (options.json && options.markdown) {
         throw new Error("Use either --json or --markdown, not both. / --json 和 --markdown 不能同时使用。");
       }
 
-      const scan = await scanRepository(targetPath);
+      let scan = await scanRepository(targetPath);
+      if (options.llm) {
+        const result = await enhanceScanWithLlm(scan, {
+          baseUrl: options.llmBaseUrl,
+          model: options.llmModel
+        });
+        scan = result.scan;
+        if (result.status !== "ok" && result.message) {
+          console.error(`${pc.yellow("LLM note / 大模型提示")}: ${result.message}`);
+        }
+      }
       const failUnder = parseOptionalScore(options.failUnder);
 
       if (options.json) {

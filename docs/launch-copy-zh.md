@@ -7,7 +7,7 @@
 - GitHub 仓库：https://github.com/chen9965/agent-ready-kit
 - 可用方式：`npx @chent6767/agent-ready-kit scan .`
 - GitHub 源码方式：`npx github:chen9965/agent-ready-kit scan .`
-- 核心卖点：不需要 API Key，不调用模型，只扫描仓库并生成 AI Agent 协作说明。
+- 核心卖点：默认不需要 API Key，不上传源码；可选接入 OpenAI 兼容大模型，把静态扫描结果润色成更像 reviewer 的建议。
 
 ## 核心定位
 
@@ -60,7 +60,7 @@ npx @chent6767/agent-ready-kit scan .
 npx @chent6767/agent-ready-kit init . --write
 ```
 
-它不需要 API Key，不调用模型，只做本地静态分析。比较适合先把仓库整理成“AI Agent 读得懂、改得动、能验证”的状态。
+它默认不需要 API Key，只做本地静态分析。你也可以用 `--llm` 接入 OpenAI 兼容接口，让免费额度、自建模型或第三方模型基于扫描摘要生成更像 reviewer 的建议。
 
 仓库地址：
 
@@ -114,6 +114,7 @@ https://github.com/chen9965/agent-ready-kit
 - guard rules
 - Markdown/HTML 报告
 - GitHub Action 门禁
+- 可选 LLM 增强建议
 
 快速试用：
 
@@ -154,7 +155,7 @@ AI 编码代理时代，仓库也需要一份“上岗说明书”
 
 它会给仓库做一次静态扫描，生成一个 AI Agent readiness score，并输出 `AGENTS.md`、任务卡、报告和机器可读 guard rules。它也可以作为 GitHub Action 放进 CI，在 PR 里检查仓库是否低于最低就绪度分数。
 
-它不需要 API Key，也不调用模型。它更像一个面向 AI 协作时代的 repo hygiene 工具。
+它默认不需要 API Key，也不上传源码。需要更自然的建议时，可以选择接入 OpenAI 兼容大模型。
 
 试用：
 
@@ -175,9 +176,9 @@ https://github.com/chen9965/agent-ready-kit
 
 我开源了一个小工具：`agent-ready-kit`。
 
-它可以给任意仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules 和 GitHub Action 门禁。
+它可以给任意仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 GitHub Action 门禁。现在也支持可选大模型增强建议。
 
-适合正在用 Codex、Claude Code、Cursor、Copilot coding agent 的人。它不需要 API Key，不调用模型，只做本地静态分析。
+适合正在用 Codex、Claude Code、Cursor、Copilot coding agent 的人。它默认不需要 API Key；如果你有免费模型额度、自建模型或第三方兼容接口，也可以打开 `--llm` 做增强建议。
 
 ```bash
 npx @chent6767/agent-ready-kit scan .
@@ -215,7 +216,7 @@ https://github.com/chen9965/agent-ready-kit
 
 中段：
 
-我做了一个开源工具，叫 `agent-ready-kit`。它会扫描你的仓库，给出一个 AI Agent 就绪度分数，然后生成 `AGENTS.md`、任务卡、guard rules 和报告。
+我做了一个开源工具，叫 `agent-ready-kit`。它会扫描你的仓库，给出一个 AI Agent 就绪度分数，然后生成 `AGENTS.md`、任务卡、guard rules 和报告。默认不需要 API Key；如果你有免费模型额度，也可以开启大模型增强建议。
 
 演示：
 
@@ -261,7 +262,7 @@ I think it may be useful for projects that want Codex, Claude Code, Cursor, or C
 
 有人问“会不会上传代码”：
 
-不会。它只在本地做静态扫描，不需要 API Key，也不调用模型。
+默认不会。它只在本地做静态扫描；只有你主动开启 `--llm` 并配置模型接口时，才会发送评分、信号和 findings 摘要，不上传源码文件。
 
 有人问“国内能不能用”：
 

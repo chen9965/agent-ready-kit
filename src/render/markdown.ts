@@ -32,6 +32,7 @@ export function renderMarkdownSummary(scan: ScanResult, options: MarkdownSummary
 ## Top Findings / 主要发现
 
 ${findings.length ? renderFindings(findings) : "No findings / 暂无发现"}
+${scan.llm ? renderLlm(scan) : ""}
 `;
 }
 
@@ -46,4 +47,29 @@ function renderFindings(findings: ScanResult["findings"]): string {
 
 function escapeCell(value: string): string {
   return value.replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+}
+
+function renderLlm(scan: ScanResult): string {
+  const llm = scan.llm;
+  if (!llm) return "";
+
+  const fixes = llm.priorityFixesZh.length
+    ? llm.priorityFixesZh.map((fix) => `- ${fix}`).join("\n")
+    : llm.priorityFixes.map((fix) => `- ${fix}`).join("\n");
+  const issues = llm.suggestedIssueTitles.map((title) => `- ${title}`).join("\n");
+
+  return `
+
+## LLM Recommendations / 大模型增强建议
+
+${llm.summary}
+
+${llm.summaryZh}
+
+${fixes ? `### Priority Fixes / 优先修复\n\n${fixes}` : ""}
+
+${issues ? `### Suggested Issues / 建议 Issue\n\n${issues}` : ""}
+
+Model / 模型: \`${llm.provider.model}\`
+`;
 }
