@@ -20,7 +20,7 @@ inputs:
     required: false
     default: "true"
   llm:
-    description: Run LLM-first analysis. Set to false only for emergency local-only scans.
+    description: Enable managed or BYOK LLM recommendations. Set to false only for local-only fallback scans.
     required: false
     default: "true"
   managed-llm:

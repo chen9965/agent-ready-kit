@@ -170,8 +170,8 @@ export function withLlmRunStatus(result: LlmEnhanceResult): ScanResult {
         sourceMode: llm.sourceMode,
         message:
           provider === "managed"
-            ? "LLM-first analysis used the managed endpoint. / 已使用托管大模型进行优先分析。"
-            : "LLM-first analysis used the configured OpenAI-compatible provider. / 已使用配置的大模型服务进行优先分析。"
+            ? "Managed LLM recommendations were used. / 已使用托管大模型建议。"
+            : "Configured OpenAI-compatible LLM recommendations were used. / 已使用配置的大模型服务生成建议。"
       }
     };
   }
@@ -182,7 +182,7 @@ export function withLlmRunStatus(result: LlmEnhanceResult): ScanResult {
       status: "local-fallback",
       message:
         result.message ??
-        "LLM-first analysis was unavailable; deterministic local scan was used as a fallback. / 大模型优先分析不可用，已退回本地确定性扫描。"
+        "LLM recommendations were unavailable; deterministic local scan was used as a fallback. / 大模型建议不可用，已退回本地确定性扫描。"
     }
   };
 }

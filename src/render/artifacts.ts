@@ -79,7 +79,7 @@ Without Agent Ready Kit, an AI coding agent usually has to infer:
 | Output | What it gives you |
 | --- | --- |
 | \`scan.json\` | Full machine-readable signal, score, finding, LLM status, and LLM recommendations. |
-| \`report.md\` | GitHub-friendly LLM-first score summary for README, PR comments, or issues. |
+| \`report.md\` | GitHub-friendly score summary and recommendations for README, PR comments, or issues. |
 | \`action-plan.md\` | Prioritized fixes grouped by severity and area, with LLM context when available. |
 | \`before-after.md\` | This before/after explanation for users and maintainers. |
 
@@ -136,9 +136,9 @@ npx @chent6767/agent-ready-kit report . --open
 
 ## Shareable Pitch / 可直接发布的一句话
 
-Agent Ready Kit uses LLM-first analysis with bounded local evidence to prepare a repository for AI coding agents, then generates onboarding, guardrails, task cards, and reports.
+Agent Ready Kit scans a repository, uses bounded evidence for smarter recommendations, then generates onboarding, guardrails, task cards, and reports for AI coding agents.
 
-Agent Ready Kit 会优先用大模型分析有限的本地仓库证据，帮仓库适配 AI 编码代理，然后生成上手说明、守护规则、任务卡和报告。
+Agent Ready Kit 会扫描仓库，用有限证据生成更好的建议，帮仓库适配 AI 编码代理，然后生成上手说明、守护规则、任务卡和报告。
 `;
 }
 

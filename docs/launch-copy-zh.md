@@ -9,7 +9,7 @@
 - 生成展示产物：`npx @chent6767/agent-ready-kit . --out .agent-ready`
 - 直接扫 GitHub 仓库：`npx @chent6767/agent-ready-kit https://github.com/owner/repo --out .agent-ready`
 - GitHub 源码方式：`npx github:chen9965/agent-ready-kit .`
-- 核心卖点：它不是 AI 套壳，也不是普通体检工具，而是 LLM-first 的仓库上下文生成器。CLI 默认优先走维护者托管的大模型代理，代理服务端可以用 Agnes key，普通用户不需要先申请模型 key；托管代理不可用时，优先提示高级用户自带 key，只有隐私或故障场景才切到本地兜底。
+- 核心卖点：它扫描仓库，找出 AI 编码代理最容易猜错的命令、入口、边界和验证方式，然后生成 `AGENTS.md`、报告、任务卡、guard rules、前后对比和行动计划。默认会用维护者托管的大模型代理生成建议，普通用户不需要先申请模型 key；托管代理不可用时，可以自带 key 或切到本地兜底。
 - v0.6 视频发布包：见 [`docs/social-video-v060-zh.md`](social-video-v060-zh.md)，里面有新版口播、封面、平台标题、简介和评论区回复。
 
 视频配乐署名：
@@ -26,11 +26,11 @@
 
 更短版本：
 
-让仓库先学会和 AI 编码代理协作。
+让仓库更适合 AI 编码代理接手。
 
 最短解释：
 
-给 Codex、Claude Code、Cursor、Copilot coding agent 用的仓库体检和上岗说明书生成器。
+给 Codex、Claude Code、Cursor、Copilot coding agent 用的仓库扫描、说明书和任务清单生成器。
 
 英文副标题：
 
@@ -61,11 +61,11 @@ Topics 建议：
 
 可复制版本：
 
-`agent-ready-kit` helps repositories work better with AI coding agents. It scans setup commands, tests, CI, repo maps, safety boundaries, and `AGENTS.md`, then returns an Agent Ready Score and can generate the missing agent-facing files. It first tries a maintainer-hosted managed LLM proxy, so most users do not need to apply for a model key.
+`agent-ready-kit` helps repositories work better with AI coding agents. It scans setup commands, tests, CI, repo maps, safety boundaries, and `AGENTS.md`, then returns an Agent Ready Score and can generate the missing agent-facing files. It also uses a maintainer-hosted managed LLM proxy for better recommendations, so most users do not need to apply for a model key.
 
 中文版本：
 
-`agent-ready-kit` 帮仓库更好地配合 AI 编码代理。它会扫描安装命令、测试、CI、仓库地图、安全边界和 `AGENTS.md`，然后给出 Agent Ready Score，并生成缺失的 Agent 可读文件。它会优先尝试维护者托管的大模型代理，所以大多数用户不需要自己申请模型 key。
+`agent-ready-kit` 帮仓库更好地配合 AI 编码代理。它会扫描安装命令、测试、CI、仓库地图、安全边界和 `AGENTS.md`，然后给出 Agent Ready Score，并生成缺失的 Agent 可读文件。它也会通过维护者托管的大模型代理生成更好的建议，所以大多数用户不需要自己申请模型 key。
 
 ## V2EX
 
@@ -162,7 +162,7 @@ https://github.com/chen9965/agent-ready-kit
 - guard rules
 - Markdown/HTML 报告
 - GitHub Action 门禁
-- LLM-first 仓库上下文建议
+- 仓库扫描 + 大模型建议
 
 快速试用：
 
