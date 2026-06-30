@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520" role="img" aria-label="agent-ready-kit terminal demo">
+  <rect width="960" height="520" fill="#f7f4ef"/>
+  <rect x="36" y="34" width="888" height="452" rx="8" fill="#171717"/>
+  <circle cx="66" cy="61" r="7" fill="#ef4444"/>
+  <circle cx="90" cy="61" r="7" fill="#f59e0b"/>
+  <circle cx="114" cy="61" r="7" fill="#22c55e"/>
+  <text x="58" y="108" fill="#fafafa" font-family="Consolas, Monaco, monospace" font-size="24">$ npx agent-ready-kit scan .</text>
+  <text x="58" y="158" fill="#86efac" font-family="Consolas, Monaco, monospace" font-size="24">Agent readiness / 代理就绪度: good 78/100</text>
+  <text x="58" y="204" fill="#e5e7eb" font-family="Consolas, Monaco, monospace" font-size="21">Stack / 技术栈: Node.js, React, TypeScript, Vite</text>
+  <text x="58" y="242" fill="#e5e7eb" font-family="Consolas, Monaco, monospace" font-size="21">Score breakdown / 评分明细</text>
+  <text x="82" y="280" fill="#d4d4d8" font-family="Consolas, Monaco, monospace" font-size="20">docs / 文档: 90    tests / 测试: 90    ci / 持续集成: 72</text>
+  <text x="58" y="334" fill="#fef08a" font-family="Consolas, Monaco, monospace" font-size="21">WARN Add CI / 添加 CI</text>
+  <text x="82" y="372" fill="#d4d4d8" font-family="Consolas, Monaco, monospace" font-size="19">Add a workflow that runs install, checks, and tests on pull requests.</text>
+  <text x="82" y="404" fill="#d4d4d8" font-family="Consolas, Monaco, monospace" font-size="19">添加工作流，在 PR 上运行安装、检查和测试。</text>
+  <text x="58" y="456" fill="#93c5fd" font-family="Consolas, Monaco, monospace" font-size="22">$ agent-ready init . --write</text>
+</svg>
