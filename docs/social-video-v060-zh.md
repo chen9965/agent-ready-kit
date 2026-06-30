@@ -4,48 +4,48 @@
 
 当前视频版本：
 
-- 结构：6 个场景，重点讲清楚“能做什么、输出什么、优势在哪里、和别的工具有什么区别”。
+- 结构：6 个场景，重点讲清楚“怎么帮助大模型、用了之后有什么优势、和别的工具有什么区别”。
 - 配音：Microsoft Edge Neural TTS，`zh-CN-XiaoxiaoNeural`。
 - 字幕：短句级字幕，每句配音独立计时，避免字幕和人声错位。
 - 转场：0.45 秒稳定 crossfade，不使用抖动、glitch 或大幅滑动转场。
-- 时长：约 67 秒。
-- 核心信息：扫描仓库、给 Agent Ready Score、生成 Agent 工作材料；默认免 API Key。
+- 时长：约 66 秒。
+- 核心信息：给大模型补仓库上下文；用了之后少猜命令、少改错层级、验证路径更清楚；默认免 API Key。
 
 ## 视频主线
 
 一句话：
 
-`agent-ready-kit` 是一个仓库体检工具：扫描仓库是否适合 AI 编码代理接手，并生成 Agent 能直接用的工作材料。
+`agent-ready-kit` 是一个给大模型补仓库上下文的工具：它把命令、入口、目录边界和验证方式整理成 Agent 能直接使用的工作材料。
 
 更明确的解释：
 
-它不是 linter，不是 README 生成器，也不是聊天套壳。它先看仓库有没有把 Agent 需要的信息讲清楚：安装命令、测试命令、CI、项目入口、目录边界、忽略规则和 `AGENTS.md`。然后给出 `Agent Ready Score`，并生成报告、任务卡、前后对比、行动计划和 guard rules。
+它不是 linter，不是 README 生成器，也不是聊天套壳。它的重点是帮助 Codex、Claude Code、Cursor 这类大模型编码代理看懂仓库：该看哪里、跑什么命令、哪些文件别碰、改完怎么验证。
 
 ## 口播脚本
 
 开场：
 
-`agent-ready-kit` 是一个仓库体检工具。它判断仓库是否适合 AI 编码代理接手。
+`agent-ready-kit` 是帮大模型理解仓库的工具。它把仓库规则整理成 Agent 可读上下文。
 
-三件事：
+使用后优势：
 
-它做三件事：扫描、评分、生成材料。输出 `AGENTS.md`、报告、任务卡和行动计划。
+使用前，大模型只能猜命令和边界。使用后，它知道看哪里、跑什么、别改什么。
 
-检查内容：
+补齐上下文：
 
-它检查安装命令、测试命令、CI，还会看项目入口、目录边界、忽略规则和 `AGENTS.md`。
+它会补齐安装命令、测试命令、CI，还会整理项目入口、目录边界、忽略规则和 `AGENTS.md`。
 
 优势：
 
-优势是把模糊规则变成清单。缺什么、先改什么、怎么验证，都写出来。
+核心优势是把隐含规则交给模型。以前靠人提醒，现在直接写成文件。
 
 对比：
 
-它不是 linter，也不是 README 生成器。它专门看仓库能不能让 Agent 顺利工作。
+它不是 linter，也不是 README 生成器。它是在给大模型准备工作上下文。
 
-使用前后：
+结果：
 
-使用前，Agent 靠猜。使用后，命令、边界和验证路径都写出来。
+模型少猜，少改错。命令、边界和验证路径都写出来。
 
 结尾：
 
@@ -55,27 +55,27 @@
 
 小红书 / 抖音：
 
-- 给 AI 改代码前，先给仓库做一次体检
-- 我做了个工具：判断仓库适不适合 AI Agent 接手
-- 别让 Codex/Claude Code 靠猜：先跑 Agent Ready Score
+- 给大模型补仓库上下文：让 Agent 少猜少改错
+- 我做了个工具：把仓库规则整理给 AI 编码代理
+- 别让 Codex/Claude Code 靠猜：先生成 Agent 工作上下文
 
 B 站：
 
-- 67 秒看懂 agent-ready-kit：让仓库更适合 AI 编码代理
-- 我做了一个开源 CLI：扫描仓库的 AI Agent 就绪度
+- 66 秒看懂 agent-ready-kit：给大模型补仓库上下文
+- 我做了一个开源 CLI：让 AI 编码代理少猜少改错
 - 为什么同一个 AI Agent 在不同仓库表现差很多？
 
 知乎：
 
-- AI 编码代理时代，仓库也需要一份上岗说明书
-- agent-ready-kit：给仓库做 AI Agent 就绪度体检
+- AI 编码代理时代，仓库也需要给大模型准备上下文
+- agent-ready-kit：把仓库规则整理成 Agent 可读材料
 - Codex、Claude Code、Cursor 进仓库前，最好先知道这些规则
 
 ## 平台简介
 
 短版：
 
-我做了一个开源工具 `agent-ready-kit`：扫描仓库是否适合 AI 编码代理接手，输出 Agent Ready Score，并生成 `AGENTS.md`、报告、任务卡、前后对比、行动计划和 guard rules。默认免 API Key，也可以直接扫描 GitHub 仓库 URL。
+我做了一个开源工具 `agent-ready-kit`：把仓库里的命令、入口、边界和验证方式整理成大模型可读上下文，生成 `AGENTS.md`、报告、任务卡、前后对比、行动计划和 guard rules。用了之后，AI 编码代理更少猜命令、更少改错文件、更容易按规则验证。默认免 API Key，也可以直接扫描 GitHub 仓库 URL。
 
 带命令版：
 
@@ -91,9 +91,9 @@ https://github.com/chen9965/agent-ready-kit
 
 ## 封面文案
 
-- 给 AI 改代码前，先给仓库做体检
-- Agent Ready Score
-- 扫描、评分、生成 Agent 工作材料
+- 给大模型补仓库上下文
+- 让 Agent 少猜少改错
+- 生成 AGENTS.md / 任务卡 / 验证清单
 - 默认免 API Key
 
 ## 置顶评论
@@ -105,7 +105,7 @@ npx @chent6767/agent-ready-kit .
 npx @chent6767/agent-ready-kit . --out .agent-ready
 ```
 
-它会扫描 README、脚本、测试、CI、仓库地图、忽略规则和 `AGENTS.md`，输出 Agent Ready Score，并生成 Agent 可以直接使用的工作材料。
+它会整理 README、脚本、测试、CI、仓库地图、忽略规则和 `AGENTS.md`，生成 Agent 可以直接使用的工作上下文。
 
 项目地址：
 
@@ -115,15 +115,15 @@ https://github.com/chen9965/agent-ready-kit
 
 问：这和 README 生成器有什么区别？
 
-答：README 主要给人看；`agent-ready-kit` 关注的是 AI 编码代理能不能顺利工作。它会评分，并生成 `AGENTS.md`、任务卡、报告、前后对比、行动计划和 guard rules。
+答：README 主要给人看；`agent-ready-kit` 是给大模型准备工作上下文。它会生成 `AGENTS.md`、任务卡、报告、前后对比、行动计划和 guard rules，让 Agent 少猜命令、少改错文件。
 
 问：这和 linter 有什么区别？
 
-答：linter 看代码风格和语法；`agent-ready-kit` 看仓库协作信息是否完整，比如安装、测试、CI、项目入口、边界和验证方式。
+答：linter 看代码风格和语法；`agent-ready-kit` 看大模型改代码前缺不缺仓库上下文，比如安装、测试、CI、项目入口、边界和验证方式。
 
 问：为什么要接大模型？
 
-答：静态扫描能找到 README、脚本、测试和 CI；大模型能把这些信号整理成更像 reviewer 的建议。默认路径免 API Key，也可以用 `--no-llm` 只做本地扫描。
+答：静态扫描能找到 README、脚本、测试和 CI；大模型能把这些信号整理成更适合 Agent 使用的上下文和建议。默认路径免 API Key，也可以用 `--no-llm` 只做本地扫描。
 
 问：国内能不能用？
 
