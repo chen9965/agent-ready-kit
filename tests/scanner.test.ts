@@ -123,6 +123,17 @@ describe("loadLlmOptions", () => {
     expect(options.codeMaxFiles).toBe(5);
     expect(options.codeMaxChars).toBe(6000);
   });
+
+  it("allows LLM request timeouts to be configured from the environment", () => {
+    const options = withCleanLlmEnv(() => {
+      process.env.AGENT_READY_LLM_TIMEOUT_MS = "30000";
+      process.env.AGENT_READY_LLM_MANAGED_TIMEOUT_MS = "25000";
+      return loadLlmOptions();
+    });
+
+    expect(options.timeoutMs).toBe(30000);
+    expect(options.managedTimeoutMs).toBe(25000);
+  });
 });
 
 function withCleanLlmEnv<T>(run: () => T): T {
@@ -132,7 +143,9 @@ function withCleanLlmEnv<T>(run: () => T): T {
     "AGENT_READY_LLM_MANAGED_URL",
     "AGENT_READY_LLM_PROVIDER",
     "AGENT_READY_LLM_BASE_URL",
-    "AGENT_READY_LLM_MODEL"
+    "AGENT_READY_LLM_MODEL",
+    "AGENT_READY_LLM_TIMEOUT_MS",
+    "AGENT_READY_LLM_MANAGED_TIMEOUT_MS"
   ];
   const previous = new Map(keys.map((key) => [key, process.env[key]]));
   for (const key of keys) delete process.env[key];

@@ -1,4 +1,6 @@
+import https from "node:https";
 import net from "node:net";
+import tls from "node:tls";
 import type { LlmInsight, ScanResult } from "../types.js";
 import { buildRepositoryCodeContext, type RepositoryCodeContext } from "./code-context.js";
 
@@ -10,6 +12,7 @@ export interface LlmOptions {
   baseUrl?: string;
   model?: string;
   timeoutMs?: number;
+  managedTimeoutMs?: number;
   includeCodeContext?: boolean;
   codeMaxFiles?: number;
   codeMaxChars?: number;
@@ -38,11 +41,17 @@ interface ManagedLlmResponse extends Partial<LlmInsight> {
   };
 }
 
+interface JsonHttpResponse<T> {
+  ok: boolean;
+  status: number;
+  body: T;
+}
+
 const defaultBaseUrl = "https://openrouter.ai/api/v1";
 const defaultModel = "openrouter/free";
 const defaultManagedUrl = "https://agent-ready-kit-llm.agent-ready-kit.workers.dev/v1/recommend";
 const defaultTimeoutMs = 20_000;
-const managedTimeoutMs = 4_000;
+const defaultManagedTimeoutMs = 20_000;
 
 export function loadLlmOptions(overrides: LlmOptions = {}): LlmOptions {
   const provider = overrides.provider ?? process.env.AGENT_READY_LLM_PROVIDER;
@@ -56,7 +65,11 @@ export function loadLlmOptions(overrides: LlmOptions = {}): LlmOptions {
     provider,
     baseUrl: overrides.baseUrl ?? process.env.AGENT_READY_LLM_BASE_URL ?? providerDefaults.baseUrl,
     model: overrides.model ?? process.env.AGENT_READY_LLM_MODEL ?? providerDefaults.model,
-    timeoutMs: overrides.timeoutMs ?? defaultTimeoutMs,
+    timeoutMs: overrides.timeoutMs ?? parsePositiveInteger(process.env.AGENT_READY_LLM_TIMEOUT_MS) ?? defaultTimeoutMs,
+    managedTimeoutMs:
+      overrides.managedTimeoutMs ??
+      parsePositiveInteger(process.env.AGENT_READY_LLM_MANAGED_TIMEOUT_MS) ??
+      defaultManagedTimeoutMs,
     includeCodeContext: overrides.includeCodeContext,
     codeMaxFiles: overrides.codeMaxFiles,
     codeMaxChars: overrides.codeMaxChars
@@ -140,35 +153,33 @@ async function enhanceScanWithManagedProxy(
   if (!managedUrl) return { scan, status: "skipped", message: "Managed LLM endpoint is not configured." };
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), Math.min(config.timeoutMs ?? defaultTimeoutMs, managedTimeoutMs));
+  const managedRequestTimeoutMs = Math.min(
+    config.timeoutMs ?? defaultTimeoutMs,
+    config.managedTimeoutMs ?? defaultManagedTimeoutMs
+  );
+  const timeout = setTimeout(() => controller.abort(), managedRequestTimeoutMs);
+  const promptPayload = buildPromptPayload(scan, codeContext);
+  const bodyPayload = {
+    promptPayload,
+    sourceMode: codeContext ? "sampled-code" : "scan-summary",
+    codeContext: codeContext
+      ? {
+          filesSent: codeContext.filesSent,
+          charsSent: codeContext.charsSent,
+          maxFiles: codeContext.maxFiles,
+          maxChars: codeContext.maxChars
+        }
+      : undefined
+  };
 
   try {
-    await probeHttpsEndpoint(managedUrl, 1_200);
-    const response = await withHardTimeout(
-      fetch(managedUrl, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "user-agent": "agent-ready-kit"
-        },
-        body: JSON.stringify({
-          promptPayload: buildPromptPayload(scan, codeContext),
-          sourceMode: codeContext ? "sampled-code" : "scan-summary",
-          codeContext: codeContext
-            ? {
-                filesSent: codeContext.filesSent,
-                charsSent: codeContext.charsSent,
-                maxFiles: codeContext.maxFiles,
-                maxChars: codeContext.maxChars
-              }
-            : undefined
-        }),
-        signal: controller.signal
-      }),
-      Math.min(config.timeoutMs ?? defaultTimeoutMs, managedTimeoutMs),
+    const response = await postJsonToManagedEndpoint<ManagedLlmResponse>(
+      managedUrl,
+      bodyPayload,
+      managedRequestTimeoutMs,
       controller
     );
-    const body = (await response.json().catch(() => ({}))) as ManagedLlmResponse;
+    const body = response.body;
     if (!response.ok) {
       return {
         scan,
@@ -187,31 +198,155 @@ async function enhanceScanWithManagedProxy(
   }
 }
 
-function probeHttpsEndpoint(value: string, timeoutMs: number): Promise<void> {
-  let url: URL;
-  try {
-    url = new URL(value);
-  } catch {
-    return Promise.resolve();
+async function postJsonToManagedEndpoint<T>(
+  url: string,
+  payload: Record<string, unknown>,
+  timeoutMs: number,
+  controller: AbortController
+): Promise<JsonHttpResponse<T>> {
+  const proxyUrl = getProxyUrl(url);
+  if (proxyUrl) {
+    return postJsonViaHttpProxy<T>(url, proxyUrl, payload, timeoutMs);
   }
-  if (url.protocol !== "https:") return Promise.resolve();
 
-  return new Promise<void>((resolve, reject) => {
-    const socket = net.connect({
-      host: url.hostname,
-      port: url.port ? Number.parseInt(url.port, 10) : 443
-    });
+  const response = await withHardTimeout(
+    fetch(url, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "user-agent": "agent-ready-kit"
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    }),
+    timeoutMs,
+    controller
+  );
+  const body = (await response.json().catch(() => ({}))) as T;
+  return { ok: response.ok, status: response.status, body };
+}
 
-    const finish = (error?: Error) => {
-      socket.removeAllListeners();
-      socket.destroy();
+function postJsonViaHttpProxy<T>(
+  targetUrl: string,
+  proxyUrl: URL,
+  payload: Record<string, unknown>,
+  timeoutMs: number
+): Promise<JsonHttpResponse<T>> {
+  const target = new URL(targetUrl);
+  if (target.protocol !== "https:" || proxyUrl.protocol !== "http:") {
+    throw new Error(`unsupported proxy mode for managed endpoint: ${proxyUrl.protocol}`);
+  }
+
+  return new Promise<JsonHttpResponse<T>>((resolve, reject) => {
+    let settled = false;
+    const body = JSON.stringify(payload);
+    const finish = (error?: Error, response?: JsonHttpResponse<T>) => {
+      if (settled) return;
+      settled = true;
       if (error) reject(error);
-      else resolve();
+      else if (response) resolve(response);
+      else reject(new Error("managed proxy request failed"));
     };
 
-    socket.setTimeout(timeoutMs, () => finish(new Error(`managed endpoint is not reachable within ${timeoutMs}ms`)));
-    socket.once("connect", () => finish());
-    socket.once("error", (error) => finish(error instanceof Error ? error : new Error(String(error))));
+    createHttpProxyTunnel(target, proxyUrl, timeoutMs)
+      .then((socket) => {
+        const request = https.request(
+          {
+            hostname: target.hostname,
+            port: target.port ? Number.parseInt(target.port, 10) : 443,
+            path: `${target.pathname}${target.search}`,
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "content-length": Buffer.byteLength(body),
+              "user-agent": "agent-ready-kit",
+              host: target.host
+            },
+            createConnection: () => socket
+          },
+          (response) => {
+            const chunks: Buffer[] = [];
+            response.on("data", (chunk: Buffer) => chunks.push(chunk));
+            response.once("error", (error) => finish(error instanceof Error ? error : new Error(String(error))));
+            response.once("end", () => {
+              const text = Buffer.concat(chunks).toString("utf8");
+              let parsed: T;
+              try {
+                parsed = text ? (JSON.parse(text) as T) : ({} as T);
+              } catch {
+                parsed = {} as T;
+              }
+              finish(undefined, {
+                ok: response.statusCode ? response.statusCode >= 200 && response.statusCode < 300 : false,
+                status: response.statusCode ?? 0,
+                body: parsed
+              });
+            });
+          }
+        );
+
+        request.setTimeout(timeoutMs, () => request.destroy(new Error(`timed out after ${timeoutMs}ms`)));
+        request.once("error", (error) => finish(error instanceof Error ? error : new Error(String(error))));
+        request.end(body);
+      })
+      .catch((error: unknown) => finish(error instanceof Error ? error : new Error(String(error))));
+  });
+}
+
+function createHttpProxyTunnel(target: URL, proxyUrl: URL, timeoutMs: number): Promise<tls.TLSSocket> {
+  return new Promise<tls.TLSSocket>((resolve, reject) => {
+    let settled = false;
+    let headerBuffer = "";
+    const targetPort = target.port ? Number.parseInt(target.port, 10) : 443;
+    const proxyPort = proxyUrl.port ? Number.parseInt(proxyUrl.port, 10) : 80;
+    const socket = net.connect({ host: proxyUrl.hostname, port: proxyPort });
+
+    const fail = (error: Error) => {
+      if (settled) return;
+      settled = true;
+      socket.destroy();
+      reject(error);
+    };
+
+    socket.setTimeout(timeoutMs, () => fail(new Error(`proxy tunnel timed out after ${timeoutMs}ms`)));
+    socket.once("error", (error) => fail(error instanceof Error ? error : new Error(String(error))));
+    socket.once("connect", () => {
+      const authHeader = proxyUrl.username
+        ? `Proxy-Authorization: Basic ${Buffer.from(`${decodeURIComponent(proxyUrl.username)}:${decodeURIComponent(proxyUrl.password)}`).toString("base64")}\r\n`
+        : "";
+      socket.write(
+        `CONNECT ${target.hostname}:${targetPort} HTTP/1.1\r\n` +
+          `Host: ${target.hostname}:${targetPort}\r\n` +
+          authHeader +
+          "Proxy-Connection: Keep-Alive\r\n\r\n"
+      );
+    });
+
+    socket.on("data", (chunk: Buffer) => {
+      headerBuffer += chunk.toString("latin1");
+      if (!headerBuffer.includes("\r\n\r\n")) return;
+
+      const statusLine = headerBuffer.split("\r\n", 1)[0] ?? "";
+      if (!/^HTTP\/\d(?:\.\d)? 200\b/.test(statusLine)) {
+        fail(new Error(`proxy tunnel failed: ${statusLine || "empty response"}`));
+        return;
+      }
+
+      socket.removeAllListeners("data");
+      socket.removeAllListeners("timeout");
+      const secureSocket = tls.connect({ socket, servername: target.hostname });
+      secureSocket.setTimeout(timeoutMs, () => secureSocket.destroy(new Error(`timed out after ${timeoutMs}ms`)));
+      secureSocket.once("secureConnect", () => {
+        if (settled) return;
+        settled = true;
+        resolve(secureSocket);
+      });
+      secureSocket.once("error", (error) => {
+        if (settled) return;
+        settled = true;
+        reject(error instanceof Error ? error : new Error(String(error)));
+      });
+    });
   });
 }
 
@@ -378,6 +513,51 @@ function normalizeOptionalUrl(value?: string): string | undefined {
 
 function isDisabled(value?: string): boolean {
   return /^(0|false|off|none|disabled)$/i.test(value?.trim() ?? "");
+}
+
+function parsePositiveInteger(value?: string): number | undefined {
+  if (!value) return undefined;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function getProxyUrl(targetUrl: string): URL | undefined {
+  let target: URL;
+  try {
+    target = new URL(targetUrl);
+  } catch {
+    return undefined;
+  }
+
+  const host = target.hostname.toLowerCase();
+  if (isNoProxyHost(host)) return undefined;
+
+  const proxyValue =
+    target.protocol === "https:"
+      ? process.env.HTTPS_PROXY ?? process.env.https_proxy ?? process.env.HTTP_PROXY ?? process.env.http_proxy
+      : process.env.HTTP_PROXY ?? process.env.http_proxy;
+
+  if (!proxyValue || isDisabled(proxyValue)) return undefined;
+
+  try {
+    return new URL(proxyValue);
+  } catch {
+    return undefined;
+  }
+}
+
+function isNoProxyHost(host: string): boolean {
+  const noProxy = process.env.NO_PROXY ?? process.env.no_proxy;
+  if (!noProxy) return false;
+  return noProxy
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean)
+    .some((entry) => {
+      if (entry === "*") return true;
+      const normalized = entry.startsWith(".") ? entry.slice(1) : entry;
+      return host === normalized || host.endsWith(`.${normalized}`);
+    });
 }
 
 function resolveProviderDefaults(provider?: string, baseUrl?: string): Required<Pick<LlmOptions, "baseUrl" | "model">> {
