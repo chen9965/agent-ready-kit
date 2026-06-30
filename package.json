@@ -1,6 +1,6 @@
 {
   "name": "agent-ready-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Make any repository AI-agent-ready in 60 seconds.",
   "type": "module",
   "main": "./dist/index.js",
@@ -17,6 +17,7 @@
   "files": [
     "dist",
     "docs",
+    "action.yml",
     "README.md",
     "LICENSE"
   ],
@@ -36,10 +37,21 @@
     "claude-code",
     "developer-tools",
     "cli",
-    "repo-audit"
+    "repo-audit",
+    "github-action",
+    "readiness-score",
+    "ai-coding"
   ],
   "author": "agent-ready-kit contributors",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chen9965/agent-ready-kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chen9965/agent-ready-kit/issues"
+  },
+  "homepage": "https://github.com/chen9965/agent-ready-kit#readme",
   "dependencies": {
     "commander": "^12.1.0",
     "fast-glob": "^3.3.2",
