@@ -57,7 +57,9 @@ export async function resolveScanTarget(input = "."): Promise<ResolvedScanTarget
     });
   } catch (error) {
     await safeRemove(tempRoot);
-    throw new Error(`Failed to clone ${sourceUrl}. Make sure git is installed and the repository is reachable. ${formatExecError(error)}`);
+    throw new Error(
+      `Failed to clone ${sourceUrl}. Make sure git is installed and the repository is reachable. If GitHub is only reachable through a local proxy, configure git, for example: git config --global https.proxy http://127.0.0.1:3001. / 克隆失败：请确认已安装 git 且仓库可访问；如果 GitHub 需要本地代理，请配置 git 代理，例如：git config --global https.proxy http://127.0.0.1:3001。 ${formatExecError(error)}`
+    );
   }
 
   return {

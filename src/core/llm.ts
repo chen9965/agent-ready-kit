@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import https from "node:https";
 import net from "node:net";
 import tls from "node:tls";
@@ -52,6 +53,7 @@ const defaultModel = "openrouter/free";
 const defaultManagedUrl = "https://agent-ready-kit-llm.agent-ready-kit.workers.dev/v1/recommend";
 const defaultTimeoutMs = 60_000;
 const defaultManagedTimeoutMs = 60_000;
+const gitProxyCache = new Map<string, string | undefined>();
 
 export function loadLlmOptions(overrides: LlmOptions = {}): LlmOptions {
   const provider = overrides.provider ?? process.env.AGENT_READY_LLM_PROVIDER;
@@ -594,14 +596,37 @@ function getProxyUrl(targetUrl: string): URL | undefined {
         process.env.HTTP_PROXY ??
         process.env.http_proxy ??
         process.env.ALL_PROXY ??
-        process.env.all_proxy
-      : process.env.HTTP_PROXY ?? process.env.http_proxy ?? process.env.ALL_PROXY ?? process.env.all_proxy;
+        process.env.all_proxy ??
+        readGitProxy("https.proxy") ??
+        readGitProxy("http.proxy")
+      : process.env.HTTP_PROXY ??
+        process.env.http_proxy ??
+        process.env.ALL_PROXY ??
+        process.env.all_proxy ??
+        readGitProxy("http.proxy");
 
   if (!proxyValue || isDisabled(proxyValue)) return undefined;
 
   try {
     return new URL(proxyValue);
   } catch {
+    return undefined;
+  }
+}
+
+function readGitProxy(key: "http.proxy" | "https.proxy"): string | undefined {
+  if (gitProxyCache.has(key)) return gitProxyCache.get(key);
+  try {
+    const value = execFileSync("git", ["config", "--global", "--get", key], {
+      encoding: "utf8",
+      timeout: 1000,
+      stdio: ["ignore", "pipe", "ignore"]
+    }).trim();
+    const normalized = value && !isDisabled(value) ? value : undefined;
+    gitProxyCache.set(key, normalized);
+    return normalized;
+  } catch {
+    gitProxyCache.set(key, undefined);
     return undefined;
   }
 }
