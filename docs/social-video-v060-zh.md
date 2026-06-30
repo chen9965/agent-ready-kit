@@ -2,6 +2,14 @@
 
 这份文档对应 v0.6 发布视频，用来发布到小红书、抖音、B 站、知乎视频和朋友圈。视频文件由本地脚本生成，放在 `.agent-ready/video/`，不提交到仓库。
 
+当前视频版本：
+
+- 结构：12 个场景，从痛点、工具定位、免 API Key、GitHub URL 扫描、输出产物、安全边界到 CI 门禁完整介绍。
+- 配音：Microsoft Huihui Desktop 中文 TTS。
+- 转场：稳定 crossfade，不使用抖动、glitch 或大幅滑动转场。
+- 时长：约 2 分 07 秒。
+- 核心重复信息：普通用户默认免 API Key。
+
 ## 视频主线
 
 一句话：
@@ -25,35 +33,51 @@ v0.6 的新增重点：
 
 开场：
 
-仓库别再让 AI Agent 盲猜。`agent-ready-kit` 一条命令，把 repo 变成可被 Codex、Claude Code、Cursor 接手的工作空间。
+把仓库交给 AI Agent 前，先让它知道安装、测试、边界和验证。`agent-ready-kit` 一条命令扫描，默认免 API Key。
 
-托管大模型：
+痛点：
 
-默认托管 Agnes，用户不用先申请 key。CLI 会优先请求维护者托管的大模型代理；代理不可用时，才提示用户自带 OpenAI-compatible key。
+很多仓库没有写清命令和目录边界，Agent 只能猜。猜错以后，成本就会落到 review 上。
+
+工具定位：
+
+它不是聊天套壳，而是本地 CLI + GitHub Action，给仓库做 AI Agent 上岗体检。
+
+免 API Key：
+
+普通用户不用申请密钥。CLI 默认请求托管 Agnes/Cloudflare 代理，失败时再回退到本地扫描，或支持高级用户自带 key。
 
 输入方式：
 
-本地路径、`owner/repo`、GitHub URL 都能扫。输入仓库链接后，它会自动浅克隆到临时目录，再完成扫描。
+既能扫当前目录，也能直接输入 GitHub URL，工具会浅克隆到临时目录后扫描。
+
+扫描信号：
+
+它会检查 README、脚本、测试、CI、仓库地图、安全边界和上手流程。这些都是 Agent 真正需要的信号。
 
 评分：
 
-它会给仓库一个 Agent Ready Score。分数来自文档、测试、脚本、CI、仓库地图、安全边界和上手流程这些可解释信号。
+扫描后会得到 Agent Ready Score。每个扣分项都有解释，不只是给一个好看的数字。
 
 输出：
 
-输出不是空文档，而是一套 Agent 工作材料：`AGENTS.md`、任务卡、`guards.json`、`report.md`、`before-after.md` 和 `action-plan.md`。
+输出不是空文档，而是 Agent 能直接用的工作材料：`AGENTS.md`、任务卡、`guards.json`、`report.md`、`before-after.md` 和 `action-plan.md`。
+
+前后对比：
+
+大仓库加 `--out` 参数，就能看到使用前 Agent 在猜什么，使用后多了哪些明确材料。
 
 安全：
 
-维护者的模型密钥不会写进 npm 包。真实密钥只放在服务端，不会写进 npm 和 GitHub。源码也只做有限采样，并跳过疑似密钥内容。
+真实模型密钥只在服务端，不进 npm 和 GitHub。代码只做有限采样，并跳过疑似密钥。
 
 CI：
 
-它还可以放进 GitHub Actions，输出双语 summary，分数低于 `min-score` 时让 PR 直接失败。
+放进 GitHub Actions 后，低分 PR 会失败，并在 summary 里输出双语报告。
 
 结尾：
 
-现在运行 `npx @chent6767/agent-ready-kit .`，就可以给你的仓库打分。觉得这个方向有用，欢迎 Star 和反馈。
+现在运行 `npx @chent6767/agent-ready-kit .`，就能给仓库打分。默认免 API Key。觉得方向有用，欢迎 Star 和反馈。
 
 ## 平台标题
 
@@ -79,7 +103,7 @@ B 站：
 
 短版：
 
-我做了一个开源工具 `agent-ready-kit`：扫描仓库是否适合 AI 编码代理接手，输出 Agent Ready Score，并生成 `AGENTS.md`、任务卡、guard rules、报告、前后对比和行动计划。v0.6 默认走托管 Agnes 大模型代理，普通用户不用先申请 key，也可以直接扫 GitHub URL。
+我做了一个开源工具 `agent-ready-kit`：扫描仓库是否适合 AI 编码代理接手，输出 Agent Ready Score，并生成 `AGENTS.md`、任务卡、guard rules、报告、前后对比和行动计划。v0.6 默认走托管 Agnes/Cloudflare 大模型代理，普通用户不用先申请 API Key，也可以直接扫 GitHub URL。
 
 带命令版：
 
