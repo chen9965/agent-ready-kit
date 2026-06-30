@@ -83,7 +83,7 @@ describe("loadLlmOptions", () => {
 
     expect(options.baseUrl).toBe("https://openrouter.ai/api/v1");
     expect(options.model).toBe("openrouter/free");
-    expect(options.managedUrl).toBe("https://agent-ready-kit-llm.chen9965.workers.dev/v1/recommend");
+    expect(options.managedUrl).toBe("https://agent-ready-kit-llm.agent-ready-kit.workers.dev/v1/recommend");
   });
 
   it("supports provider presets for simpler setup", () => {

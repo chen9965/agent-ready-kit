@@ -1,3 +1,4 @@
+import net from "node:net";
 import type { LlmInsight, ScanResult } from "../types.js";
 import { buildRepositoryCodeContext, type RepositoryCodeContext } from "./code-context.js";
 
@@ -39,9 +40,9 @@ interface ManagedLlmResponse extends Partial<LlmInsight> {
 
 const defaultBaseUrl = "https://openrouter.ai/api/v1";
 const defaultModel = "openrouter/free";
-const defaultManagedUrl = "https://agent-ready-kit-llm.chen9965.workers.dev/v1/recommend";
+const defaultManagedUrl = "https://agent-ready-kit-llm.agent-ready-kit.workers.dev/v1/recommend";
 const defaultTimeoutMs = 20_000;
-const managedTimeoutMs = 8_000;
+const managedTimeoutMs = 4_000;
 
 export function loadLlmOptions(overrides: LlmOptions = {}): LlmOptions {
   const provider = overrides.provider ?? process.env.AGENT_READY_LLM_PROVIDER;
@@ -142,26 +143,31 @@ async function enhanceScanWithManagedProxy(
   const timeout = setTimeout(() => controller.abort(), Math.min(config.timeoutMs ?? defaultTimeoutMs, managedTimeoutMs));
 
   try {
-    const response = await fetch(managedUrl, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "user-agent": "agent-ready-kit"
-      },
-      body: JSON.stringify({
-        promptPayload: buildPromptPayload(scan, codeContext),
-        sourceMode: codeContext ? "sampled-code" : "scan-summary",
-        codeContext: codeContext
-          ? {
-              filesSent: codeContext.filesSent,
-              charsSent: codeContext.charsSent,
-              maxFiles: codeContext.maxFiles,
-              maxChars: codeContext.maxChars
-            }
-          : undefined
+    await probeHttpsEndpoint(managedUrl, 1_200);
+    const response = await withHardTimeout(
+      fetch(managedUrl, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "user-agent": "agent-ready-kit"
+        },
+        body: JSON.stringify({
+          promptPayload: buildPromptPayload(scan, codeContext),
+          sourceMode: codeContext ? "sampled-code" : "scan-summary",
+          codeContext: codeContext
+            ? {
+                filesSent: codeContext.filesSent,
+                charsSent: codeContext.charsSent,
+                maxFiles: codeContext.maxFiles,
+                maxChars: codeContext.maxChars
+              }
+            : undefined
+        }),
+        signal: controller.signal
       }),
-      signal: controller.signal
-    });
+      Math.min(config.timeoutMs ?? defaultTimeoutMs, managedTimeoutMs),
+      controller
+    );
     const body = (await response.json().catch(() => ({}))) as ManagedLlmResponse;
     if (!response.ok) {
       return {
@@ -179,6 +185,34 @@ async function enhanceScanWithManagedProxy(
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function probeHttpsEndpoint(value: string, timeoutMs: number): Promise<void> {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return Promise.resolve();
+  }
+  if (url.protocol !== "https:") return Promise.resolve();
+
+  return new Promise<void>((resolve, reject) => {
+    const socket = net.connect({
+      host: url.hostname,
+      port: url.port ? Number.parseInt(url.port, 10) : 443
+    });
+
+    const finish = (error?: Error) => {
+      socket.removeAllListeners();
+      socket.destroy();
+      if (error) reject(error);
+      else resolve();
+    };
+
+    socket.setTimeout(timeoutMs, () => finish(new Error(`managed endpoint is not reachable within ${timeoutMs}ms`)));
+    socket.once("connect", () => finish());
+    socket.once("error", (error) => finish(error instanceof Error ? error : new Error(String(error))));
+  });
 }
 
 async function requestChatCompletion(
@@ -306,6 +340,31 @@ function normalizeManagedInsight(body: ManagedLlmResponse, managedUrl: string, c
     priorityFixesZh: cleanList(body.priorityFixesZh),
     suggestedIssueTitles: cleanList(body.suggestedIssueTitles)
   };
+}
+
+function withHardTimeout<T>(promise: Promise<T>, timeoutMs: number, controller: AbortController): Promise<T> {
+  let timedOut = false;
+  promise.catch(() => undefined);
+
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+      reject(new Error(`timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    promise
+      .then((value) => {
+        if (timedOut) return;
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((error: unknown) => {
+        if (timedOut) return;
+        clearTimeout(timer);
+        reject(error);
+      });
+  });
 }
 
 function normalizeBaseUrl(value: string): string {

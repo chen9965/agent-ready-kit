@@ -173,7 +173,7 @@ Default managed endpoint:
 默认托管端点：
 
 ```text
-https://agent-ready-kit-llm.chen9965.workers.dev/v1/recommend
+https://agent-ready-kit-llm.agent-ready-kit.workers.dev/v1/recommend
 ```
 
 Use your own managed endpoint:
@@ -213,7 +213,7 @@ Defaults:
 
 默认值：
 
-- `AGENT_READY_LLM_MANAGED_URL=https://agent-ready-kit-llm.chen9965.workers.dev/v1/recommend`
+- `AGENT_READY_LLM_MANAGED_URL=https://agent-ready-kit-llm.agent-ready-kit.workers.dev/v1/recommend`
 - `AGENT_READY_LLM_BASE_URL=https://openrouter.ai/api/v1`
 - `AGENT_READY_LLM_MODEL=openrouter/free`
 

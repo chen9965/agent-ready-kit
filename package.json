@@ -17,7 +17,9 @@
   "files": [
     "dist",
     "docs",
-    "examples/managed-llm-worker",
+    "examples/managed-llm-worker/README.md",
+    "examples/managed-llm-worker/worker.js",
+    "examples/managed-llm-worker/wrangler.toml.example",
     "action.yml",
     "README.md",
     "LICENSE"

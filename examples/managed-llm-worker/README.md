@@ -48,7 +48,7 @@ UPSTREAM_MODEL = "Qwen/Qwen3-8B"
 After deployment, either use the built-in default endpoint if you deploy to:
 
 ```text
-https://agent-ready-kit-llm.chen9965.workers.dev/v1/recommend
+https://agent-ready-kit-llm.agent-ready-kit.workers.dev/v1/recommend
 ```
 
 or point the CLI at your URL:
