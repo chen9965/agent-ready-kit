@@ -10,6 +10,7 @@
 - 直接扫 GitHub 仓库：`npx @chent6767/agent-ready-kit https://github.com/owner/repo --out .agent-ready`
 - GitHub 源码方式：`npx github:chen9965/agent-ready-kit .`
 - 核心卖点：它不是 AI 套壳，而是给仓库做一次“AI 编码代理上岗体检”。CLI 默认优先走维护者托管的大模型代理，代理服务端可以用 Agnes key，普通用户不需要先申请模型 key；托管代理不可用时，再提示高级用户自带 key 或切到本地扫描。
+- v0.6 视频发布包：见 [`docs/social-video-v060-zh.md`](social-video-v060-zh.md)，里面有新版口播、封面、平台标题、简介和评论区回复。
 
 视频配乐署名：
 
