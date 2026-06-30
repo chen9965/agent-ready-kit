@@ -83,6 +83,7 @@ describe("loadLlmOptions", () => {
 
     expect(options.baseUrl).toBe("https://openrouter.ai/api/v1");
     expect(options.model).toBe("openrouter/free");
+    expect(options.managedUrl).toBe("https://agent-ready-kit-llm.chen9965.workers.dev/v1/recommend");
   });
 
   it("supports provider presets for simpler setup", () => {
@@ -90,6 +91,14 @@ describe("loadLlmOptions", () => {
 
     expect(options.baseUrl).toBe("https://api.siliconflow.cn/v1");
     expect(options.model).toBe("Qwen/Qwen3-8B");
+  });
+
+  it("allows the managed endpoint to be overridden or disabled", () => {
+    const overridden = withCleanLlmEnv(() => loadLlmOptions({ managedUrl: "https://example.com/v1/recommend/" }));
+    expect(overridden.managedUrl).toBe("https://example.com/v1/recommend");
+
+    const disabled = withCleanLlmEnv(() => loadLlmOptions({ managedUrl: "off" }));
+    expect(disabled.managedUrl).toBeUndefined();
   });
 
   it("preserves code-context options", () => {
@@ -110,7 +119,14 @@ describe("loadLlmOptions", () => {
 });
 
 function withCleanLlmEnv<T>(run: () => T): T {
-  const keys = ["AGENT_READY_LLM_API_KEY", "AGENT_READY_LLM_PROVIDER", "AGENT_READY_LLM_BASE_URL", "AGENT_READY_LLM_MODEL"];
+  const keys = [
+    "AGENT_READY_LLM_API_KEY",
+    "AGENT_READY_LLM_MANAGED",
+    "AGENT_READY_LLM_MANAGED_URL",
+    "AGENT_READY_LLM_PROVIDER",
+    "AGENT_READY_LLM_BASE_URL",
+    "AGENT_READY_LLM_MODEL"
+  ];
   const previous = new Map(keys.map((key) => [key, process.env[key]]));
   for (const key of keys) delete process.env[key];
   try {

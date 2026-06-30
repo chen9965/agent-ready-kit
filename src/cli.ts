@@ -8,7 +8,7 @@ const program = addScanOptions(
   new Command()
     .name("agent-ready")
     .description("Make any repository AI-agent-ready in 60 seconds. / 60 秒让仓库适配 AI 编码代理。")
-    .version("0.5.0")
+    .version("0.6.0")
     .argument("[target]", "repository path, GitHub URL, or owner/repo / 仓库路径、GitHub 网址或 owner/repo", ".")
 ).action((target: string, _options: ScanCommandOptions, command: Command) =>
   runScanCommand(target, command.optsWithGlobals() as ScanCommandOptions)

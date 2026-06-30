@@ -1,6 +1,6 @@
 {
   "name": "@chent6767/agent-ready-kit",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Local CLI and GitHub Action that scores repo readiness for AI coding agents and generates AGENTS.md, task cards, guard rules, and reports.",
   "type": "module",
   "main": "./dist/index.js",
@@ -17,6 +17,7 @@
   "files": [
     "dist",
     "docs",
+    "examples/managed-llm-worker",
     "action.yml",
     "README.md",
     "LICENSE"
@@ -26,7 +27,7 @@
     "check": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "dev": "tsx src/cli.ts",
-    "smoke": "npm run build && node dist/cli.js scan examples/react-vite && node dist/cli.js scan examples/react-vite --json && node dist/cli.js init examples/react-vite --dry-run && node dist/cli.js report examples/react-vite",
+    "smoke": "npm run build && node dist/cli.js scan examples/react-vite --no-llm && node dist/cli.js scan examples/react-vite --no-llm --json && node dist/cli.js init examples/react-vite --dry-run && node dist/cli.js report examples/react-vite",
     "prepack": "npm run build",
     "prepare": "npm run build"
   },

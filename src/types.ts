@@ -64,6 +64,7 @@ export interface LlmInsight {
   provider: {
     baseUrl: string;
     model: string;
+    managed?: boolean;
   };
   sourceMode: "scan-summary" | "sampled-code";
   codeContext?: {

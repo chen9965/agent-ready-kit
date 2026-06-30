@@ -9,7 +9,7 @@
 - 生成展示产物：`npx @chent6767/agent-ready-kit . --out .agent-ready`
 - 直接扫 GitHub 仓库：`npx @chent6767/agent-ready-kit https://github.com/owner/repo --out .agent-ready`
 - GitHub 源码方式：`npx github:chen9965/agent-ready-kit .`
-- 核心卖点：它不是 AI 套壳，而是给仓库做一次“AI 编码代理上岗体检”。没有 API Key 时会本地静态扫描；配置 `AGENT_READY_LLM_API_KEY` 后会默认接入 OpenAI 兼容大模型，并发送有限采样代码上下文，适合文档很少、主要靠代码表达结构的仓库。
+- 核心卖点：它不是 AI 套壳，而是给仓库做一次“AI 编码代理上岗体检”。CLI 默认优先走维护者托管的大模型代理，普通用户不需要先申请模型 key；托管代理不可用时，再提示高级用户自带 key 或切到本地扫描。
 
 视频配乐署名：
 
@@ -21,7 +21,7 @@
 
 我做了一个小工具，帮仓库把 AI 编码代理最需要的规则讲清楚：怎么安装、怎么测试、哪些目录别碰、改完怎么验证。
 
-它会给仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 CI 门禁。现在 `--out` 会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`，适合大仓库展示“使用前后到底差在哪”。如果配置了模型 key，它会默认读取有限采样代码片段，推断入口、测试和上手说明。
+它会给仓库打一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules、报告和 CI 门禁。现在 `--out` 会生成 `scan.json`、`report.md`、`before-after.md` 和 `action-plan.md`，适合大仓库展示“使用前后到底差在哪”。它默认会尝试托管大模型代理，读取有限采样代码片段，推断入口、测试和上手说明。
 
 更短版本：
 
@@ -56,15 +56,15 @@ Topics 建议：
 - 这不是又一个模型调用工具。
 - 它扫描的是仓库给 Agent 的协作信号。
 - 它输出的是 Agent 能直接使用的说明、任务和门禁。
-- 无 key 时本地运行；有 key 时默认接入大模型，并可用 `--no-llm` 或 `--llm-summary` 控制隐私。
+- 默认优先走维护者托管的大模型代理；用户不需要先注册模型平台，也可用 `--no-llm`、`--no-managed-llm` 或 `--llm-summary` 控制隐私。
 
 可复制版本：
 
-`agent-ready-kit` helps repositories work better with AI coding agents. It scans setup commands, tests, CI, repo maps, safety boundaries, and `AGENTS.md`, then returns an Agent Ready Score and can generate the missing agent-facing files. With an API key, sampled-code LLM recommendations are enabled by default through any OpenAI-compatible model.
+`agent-ready-kit` helps repositories work better with AI coding agents. It scans setup commands, tests, CI, repo maps, safety boundaries, and `AGENTS.md`, then returns an Agent Ready Score and can generate the missing agent-facing files. It first tries a maintainer-hosted managed LLM proxy, so most users do not need to apply for a model key.
 
 中文版本：
 
-`agent-ready-kit` 帮仓库更好地配合 AI 编码代理。它会扫描安装命令、测试、CI、仓库地图、安全边界和 `AGENTS.md`，然后给出 Agent Ready Score，并生成缺失的 Agent 可读文件。配置 API key 后，它会默认通过任意 OpenAI 兼容模型生成基于采样代码的建议。
+`agent-ready-kit` 帮仓库更好地配合 AI 编码代理。它会扫描安装命令、测试、CI、仓库地图、安全边界和 `AGENTS.md`，然后给出 Agent Ready Score，并生成缺失的 Agent 可读文件。它会优先尝试维护者托管的大模型代理，所以大多数用户不需要自己申请模型 key。
 
 ## V2EX
 
@@ -106,7 +106,7 @@ npx @chent6767/agent-ready-kit . --out .agent-ready
 npx @chent6767/agent-ready-kit init . --write
 ```
 
-它没有 API Key 也能做本地静态分析。只要配置 `AGENT_READY_LLM_API_KEY`，就会默认接入大模型，用采样代码上下文生成更像 reviewer 的建议。跑大仓库时推荐加 `--out .agent-ready`，这样会直接生成前后对比和行动计划。
+它默认优先走维护者托管的大模型代理；如果代理不可用，会回退到本地静态分析，并提示高级用户自带 OpenAI 兼容 key。跑大仓库时推荐加 `--out .agent-ready`，这样会直接生成前后对比和行动计划。
 
 仓库地址：
 
@@ -203,7 +203,7 @@ AI 编码代理时代，仓库也需要一份“上岗说明书”
 
 它会给仓库做一次静态扫描，生成一个 AI Agent readiness score，并输出 `scan.json`、`before-after.md`、`action-plan.md`、`AGENTS.md`、任务卡、报告和机器可读 guard rules。它也可以作为 GitHub Action 放进 CI，在 PR 里检查仓库是否低于最低就绪度分数。
 
-它没有 API Key 也可以本地扫描。配置 API Key 后会默认接入 OpenAI 兼容大模型，读取有限采样代码上下文；如果不想上传代码，可以加 `--no-llm` 或 `--llm-summary`。
+它默认优先走维护者托管的大模型代理，不要求用户先申请 API Key；如果不想上传代码，可以加 `--no-llm`、`--no-managed-llm` 或 `--llm-summary`。
 
 试用：
 
@@ -227,9 +227,9 @@ https://github.com/chen9965/agent-ready-kit
 
 它可以检查一个仓库有没有讲清 AI 编码代理最需要的信息：安装命令、测试命令、CI、目录结构、安全边界和 `AGENTS.md`。
 
-跑完以后会得到 AI Agent 就绪度分数，并生成前后对比、行动计划、`AGENTS.md`、任务卡、guard rules、报告和 GitHub Action 门禁。配置模型 key 后会默认开启采样代码大模型增强建议。
+跑完以后会得到 AI Agent 就绪度分数，并生成前后对比、行动计划、`AGENTS.md`、任务卡、guard rules、报告和 GitHub Action 门禁。默认会优先尝试托管大模型代理，生成采样代码增强建议。
 
-适合正在用 Codex、Claude Code、Cursor、Copilot coding agent 的人。没有 API Key 也能本地跑；如果你有免费模型额度、自建模型或第三方兼容接口，设置一个环境变量就能增强建议。
+适合正在用 Codex、Claude Code、Cursor、Copilot coding agent 的人。普通用户不需要先申请模型 key；如果托管代理不可用，仍然可以自带免费额度、自建模型或第三方兼容接口。
 
 ```bash
 npx @chent6767/agent-ready-kit .
@@ -273,7 +273,7 @@ https://github.com/chen9965/agent-ready-kit
 
 我做了一个开源工具，叫 `agent-ready-kit`。它会扫描你的仓库，检查 README、测试脚本、CI、仓库地图、安全边界和 `AGENTS.md` 这些 Agent 协作信号。
 
-跑完以后，它会给出一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules 和报告。对于大仓库，还可以用 `--out` 生成 `scan.json`、`before-after.md` 和 `action-plan.md`，直接看出使用前只能靠猜、使用后有哪些明确产物。没有 API Key 也能本地扫描；配置 key 后会默认开启采样代码大模型增强建议。
+跑完以后，它会给出一个 AI Agent 就绪度分数，并生成 `AGENTS.md`、任务卡、guard rules 和报告。对于大仓库，还可以用 `--out` 生成 `scan.json`、`before-after.md` 和 `action-plan.md`，直接看出使用前只能靠猜、使用后有哪些明确产物。默认优先走托管大模型代理；代理不可用时再让高级用户自带 key。
 
 演示：
 
@@ -332,7 +332,7 @@ I think it may be useful for projects that want Codex, Claude Code, Cursor, or C
 
 有人问“会不会上传代码”：
 
-没有配置 API Key 时不会上传代码，只做本地静态扫描。配置 `AGENT_READY_LLM_API_KEY` 后会默认发送有限采样代码上下文；不想上传代码时加 `--no-llm`，只想发摘要时加 `--llm-summary`。
+默认会把有限采样代码上下文发给维护者托管代理，但源码里不会包含维护者的真实 key。如果你不想上传代码，可以加 `--no-llm`；只想发摘要可以加 `--llm-summary`；只想跳过托管代理但使用自己的 key，可以加 `--no-managed-llm`。
 
 有人问“国内能不能用”：
 

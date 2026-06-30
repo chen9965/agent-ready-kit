@@ -3,6 +3,8 @@ import { buildRepositoryCodeContext, type RepositoryCodeContext } from "./code-c
 
 export interface LlmOptions {
   apiKey?: string;
+  managedUrl?: string;
+  useManaged?: boolean;
   provider?: string;
   baseUrl?: string;
   model?: string;
@@ -29,16 +31,27 @@ interface ChatCompletionResponse {
   };
 }
 
+interface ManagedLlmResponse extends Partial<LlmInsight> {
+  error?: {
+    message?: string;
+  };
+}
+
 const defaultBaseUrl = "https://openrouter.ai/api/v1";
 const defaultModel = "openrouter/free";
+const defaultManagedUrl = "https://agent-ready-kit-llm.chen9965.workers.dev/v1/recommend";
 const defaultTimeoutMs = 20_000;
+const managedTimeoutMs = 8_000;
 
 export function loadLlmOptions(overrides: LlmOptions = {}): LlmOptions {
   const provider = overrides.provider ?? process.env.AGENT_READY_LLM_PROVIDER;
   const providerDefaults = resolveProviderDefaults(provider, overrides.baseUrl ?? process.env.AGENT_READY_LLM_BASE_URL);
+  const managedUrl = overrides.managedUrl ?? process.env.AGENT_READY_LLM_MANAGED_URL ?? defaultManagedUrl;
 
   return {
     apiKey: overrides.apiKey ?? process.env.AGENT_READY_LLM_API_KEY,
+    managedUrl: normalizeOptionalUrl(managedUrl),
+    useManaged: overrides.useManaged ?? !isDisabled(process.env.AGENT_READY_LLM_MANAGED),
     provider,
     baseUrl: overrides.baseUrl ?? process.env.AGENT_READY_LLM_BASE_URL ?? providerDefaults.baseUrl,
     model: overrides.model ?? process.env.AGENT_READY_LLM_MODEL ?? providerDefaults.model,
@@ -51,22 +64,33 @@ export function loadLlmOptions(overrides: LlmOptions = {}): LlmOptions {
 
 export async function enhanceScanWithLlm(scan: ScanResult, options: LlmOptions = {}): Promise<LlmEnhanceResult> {
   const config = loadLlmOptions(options);
-  if (!config.apiKey) {
-    return {
-      scan,
-      status: "skipped",
-      message:
-        "LLM skipped: set AGENT_READY_LLM_API_KEY to enable default model-enhanced recommendations. / 已跳过大模型：设置 AGENT_READY_LLM_API_KEY 后会默认启用。"
-    };
-  }
-
-  const baseUrl = normalizeBaseUrl(config.baseUrl ?? defaultBaseUrl);
   const codeContext = config.includeCodeContext
     ? await buildRepositoryCodeContext(scan.root, {
         maxFiles: config.codeMaxFiles,
         maxChars: config.codeMaxChars
       })
     : undefined;
+
+  if (config.useManaged !== false && config.managedUrl && !config.apiKey) {
+    const managed = await enhanceScanWithManagedProxy(scan, config, codeContext);
+    if (managed.status === "ok") return managed;
+    return {
+      scan,
+      status: "skipped",
+      message: `${managed.message ?? "Managed LLM is unavailable."} Set AGENT_READY_LLM_API_KEY to use your own OpenAI-compatible key, or use --no-llm for local-only scan. / 托管大模型不可用时，可设置 AGENT_READY_LLM_API_KEY 使用自己的 key，或用 --no-llm 只做本地扫描。`
+    };
+  }
+
+  if (!config.apiKey) {
+    return {
+      scan,
+      status: "skipped",
+      message:
+        "LLM skipped: managed endpoint is disabled and AGENT_READY_LLM_API_KEY is not set. / 已跳过大模型：托管端点已禁用且未设置 AGENT_READY_LLM_API_KEY。"
+    };
+  }
+
+  const baseUrl = normalizeBaseUrl(config.baseUrl ?? defaultBaseUrl);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), config.timeoutMs ?? defaultTimeoutMs);
 
@@ -101,6 +125,57 @@ export async function enhanceScanWithLlm(scan: ScanResult, options: LlmOptions =
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return { scan, status: "error", message: `LLM request failed: ${message}` };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function enhanceScanWithManagedProxy(
+  scan: ScanResult,
+  config: LlmOptions,
+  codeContext: RepositoryCodeContext | undefined
+): Promise<LlmEnhanceResult> {
+  const managedUrl = config.managedUrl ? normalizeBaseUrl(config.managedUrl) : undefined;
+  if (!managedUrl) return { scan, status: "skipped", message: "Managed LLM endpoint is not configured." };
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), Math.min(config.timeoutMs ?? defaultTimeoutMs, managedTimeoutMs));
+
+  try {
+    const response = await fetch(managedUrl, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "user-agent": "agent-ready-kit"
+      },
+      body: JSON.stringify({
+        promptPayload: buildPromptPayload(scan, codeContext),
+        sourceMode: codeContext ? "sampled-code" : "scan-summary",
+        codeContext: codeContext
+          ? {
+              filesSent: codeContext.filesSent,
+              charsSent: codeContext.charsSent,
+              maxFiles: codeContext.maxFiles,
+              maxChars: codeContext.maxChars
+            }
+          : undefined
+      }),
+      signal: controller.signal
+    });
+    const body = (await response.json().catch(() => ({}))) as ManagedLlmResponse;
+    if (!response.ok) {
+      return {
+        scan,
+        status: "error",
+        message: body.error?.message ?? `Managed LLM request failed with HTTP ${response.status}.`
+      };
+    }
+
+    const insight = normalizeManagedInsight(body, managedUrl, codeContext);
+    return { scan: { ...scan, llm: insight }, status: "ok" };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return { scan, status: "error", message: `Managed LLM request failed: ${message}.` };
   } finally {
     clearTimeout(timeout);
   }
@@ -208,8 +283,42 @@ function parseInsight(content: string, baseUrl: string, model: string, codeConte
   };
 }
 
+function normalizeManagedInsight(body: ManagedLlmResponse, managedUrl: string, codeContext?: RepositoryCodeContext): LlmInsight {
+  const provider = body.provider ?? { baseUrl: managedUrl, model: "managed" };
+  return {
+    provider: {
+      baseUrl: cleanText(provider.baseUrl, managedUrl),
+      model: cleanText(provider.model, "managed"),
+      managed: true
+    },
+    sourceMode: codeContext ? "sampled-code" : "scan-summary",
+    codeContext: codeContext
+      ? {
+          filesSent: codeContext.filesSent,
+          charsSent: codeContext.charsSent,
+          maxFiles: codeContext.maxFiles,
+          maxChars: codeContext.maxChars
+        }
+      : undefined,
+    summary: cleanText(body.summary, "Managed model recommendations are available."),
+    summaryZh: cleanText(body.summaryZh, "已生成托管大模型增强建议。"),
+    priorityFixes: cleanList(body.priorityFixes),
+    priorityFixesZh: cleanList(body.priorityFixesZh),
+    suggestedIssueTitles: cleanList(body.suggestedIssueTitles)
+  };
+}
+
 function normalizeBaseUrl(value: string): string {
   return value.replace(/\/+$/, "");
+}
+
+function normalizeOptionalUrl(value?: string): string | undefined {
+  if (!value || isDisabled(value)) return undefined;
+  return value.trim().replace(/\/+$/, "");
+}
+
+function isDisabled(value?: string): boolean {
+  return /^(0|false|off|none|disabled)$/i.test(value?.trim() ?? "");
 }
 
 function resolveProviderDefaults(provider?: string, baseUrl?: string): Required<Pick<LlmOptions, "baseUrl" | "model">> {

@@ -15,6 +15,8 @@ export interface ScanCommandOptions {
   failUnder?: string;
   out?: string;
   llm?: boolean;
+  managedLlm?: boolean;
+  llmManagedUrl?: string;
   llmSummary?: boolean;
   llmCode?: boolean;
   llmProvider?: string;
@@ -42,6 +44,8 @@ export function addScanOptions(command: Command): Command {
     .option("--out <dir>", "write scan artifacts to a directory / 写入扫描产物目录")
     .option("--llm", "enable model-enhanced recommendations (default) / 启用大模型增强建议（默认）")
     .option("--no-llm", "skip model-enhanced recommendations / 跳过大模型增强建议")
+    .option("--no-managed-llm", "skip the maintainer-hosted LLM proxy / 跳过维护者托管的大模型代理")
+    .option("--llm-managed-url <url>", "maintainer-hosted LLM proxy URL / 维护者托管的大模型代理地址")
     .option("--llm-summary", "send only scan summary, not sampled code / 只发送扫描摘要，不发送采样代码")
     .option("--llm-code", "send sampled code context to the LLM (default) / 向大模型发送采样代码上下文（默认）")
     .option("--llm-provider <name>", "provider preset: openrouter, siliconflow, gemini, groq / 服务商预设")
@@ -65,6 +69,8 @@ export async function runScanCommand(targetPath: string, options: ScanCommandOpt
     let scan: ScanResult = withTargetMetadata(await scanRepository(target.root), target);
     if (options.llm !== false) {
       const result = await enhanceScanWithLlm(scan, {
+        managedUrl: options.llmManagedUrl,
+        useManaged: options.managedLlm,
         provider: options.llmProvider,
         baseUrl: options.llmBaseUrl,
         model: options.llmModel,
